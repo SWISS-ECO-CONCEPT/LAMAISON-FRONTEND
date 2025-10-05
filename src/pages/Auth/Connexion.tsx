@@ -15,7 +15,7 @@ const Connexion = () => {
   const { lng } = useParams<{ lng: string }>();
   const { signIn, setActive: setActiveSignIn } = useSignIn();
   const { signUp, setActive: setActiveSignUp } = useSignUp();
-  const redirectUrl = `${window.location.origin}/${lng}/dashboard`;
+  const redirectUrl = `/${lng}/dashboard`;
 
   const initialValues = {
     email: '',
@@ -34,26 +34,51 @@ const Connexion = () => {
 
   const navTo = useNavigate();
 
-  const handleLogin = async (values: typeof initialValues, formikHelpers: FormikHelpers<typeof initialValues>) => {
-    formikHelpers.setSubmitting(true);
-    if (!signIn || !setActiveSignIn) {
-      throw new Error('Issue while signing in');
-    }
-    await signIn.create({
+  // const handleLogin = async (values: typeof initialValues, formikHelpers: FormikHelpers<typeof initialValues>) => {
+  //   formikHelpers.setSubmitting(true);
+  //   if (!signIn || !setActiveSignIn) {
+  //     throw new Error('Issue while signing in');
+  //   }
+  //   await signIn.create({
+  //     identifier: values.email,
+  //     password: values.password,
+  //     redirectUrl: redirectUrl
+  //   }).then((result) => {
+  //     if (result.status === 'complete') {
+  //       setActiveSignIn({ session: result.createdSessionId })
+  //       alert('You are now signed in!');
+  //       navTo(redirectUrl);
+  //     }
+  //   }).catch((err) => {
+  //     console.error('Error during sign-in:', err);
+  //     alert('Failed to sign in. Please check your credentials and try again.');
+  //   });
+  // };
+const handleLogin = async (values: typeof initialValues, formikHelpers: FormikHelpers<typeof initialValues>) => {
+  formikHelpers.setSubmitting(true);
+  if (!signIn || !setActiveSignIn) {
+    throw new Error('Issue while signing in');
+  }
+  try {
+    const result = await signIn.create({
       identifier: values.email,
       password: values.password,
-      redirectUrl: redirectUrl
-    }).then((result) => {
-      if (result.status === 'complete') {
-        setActiveSignIn({ session: result.createdSessionId })
-        alert('You are now signed in!');
-        navTo(redirectUrl);
-      }
-    }).catch((err) => {
-      console.error('Error during sign-in:', err);
-      alert('Failed to sign in. Please check your credentials and try again.');
     });
-  };
+
+    if (result.status === 'complete') {
+      await setActiveSignIn({ session: result.createdSessionId });
+      alert('You are now signed in!');
+      navTo(redirectUrl);
+    } else {
+      alert('Veuillez compléter la connexion');
+    }
+  } catch (err: any) {
+    console.error('Error during sign-in:', err);
+    alert('Failed to sign in. Please check your credentials and try again.');
+  } finally {
+    formikHelpers.setSubmitting(false);
+  }
+};
 
   const handleLoginWithGoogle = async (
     strategy: 'oauth_google',
@@ -157,7 +182,7 @@ const Connexion = () => {
         <p className="text-sm text-center text-gray-600">
           {t('connexion.pasCompte')}{" "}
           <Link to={`/${lng}/signup`} className="text-green-600 hover:underline font-semibold">
-            {t('connexion.clique')}
+         {t('connexion.clique')}
           </Link>
         </p>
       </div>
@@ -165,7 +190,7 @@ const Connexion = () => {
   )
 }
 
-export default Connexion
+export default Connexion   
 
 
 

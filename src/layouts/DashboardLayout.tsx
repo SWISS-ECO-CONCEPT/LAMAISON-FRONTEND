@@ -1,8 +1,8 @@
 import { Navigate, Outlet, useParams } from "react-router-dom";
 import Sidebar from "../components/DashboardComponents/Sidebar";
 import Header from "../components/DashboardComponents/Header";
-import { useState,useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useState } from "react";
+import { useAuth, useUser } from "@clerk/clerk-react";
 
 
 const DashboardLayout = () => {
@@ -10,7 +10,7 @@ const DashboardLayout = () => {
 
   const { lng } = useParams<{ lng: string }>();
 
-  const { user }: any = useContext(AuthContext)
+  const { user }: any = useUser();
   if (!user) return <Navigate to={`/${lng}/login`} />
   return (
     <div className="flex h-screen bg-gray-100">

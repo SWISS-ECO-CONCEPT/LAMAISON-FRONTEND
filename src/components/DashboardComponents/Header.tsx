@@ -1,35 +1,36 @@
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
+import { useAuth } from "@clerk/clerk-react";
 
-const Header =  ({
+const Header = ({
   // sidebarOpen,
   // setSidebarOpen,
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: (val: boolean) => void;
-})=> {
+}) => {
   const [open, setOpen] = useState(false);
 
   // Exemple : rôle stocké dans localStorage après login
   // const role = localStorage.getItem("role") || "PROSPECT";
   const { lng } = useParams<{ lng: string }>();
-    const role = location.pathname.includes("prospect") ? "PROSPECT" : "AGENT";
-
+  const role = location.pathname.includes("prospect") ? "PROSPECT" : "AGENT";
+  const { signOut } = useAuth();
 
   // Menu dynamique selon le rôle
   const menuItems =
     role === "AGENT"
       ? [
-          { path: "/dashboard/agent/profile", label: "Mon profil" },
-        ]
+        { path: "/dashboard/agent/profile", label: "Mon profil" },
+      ]
       : [
-          { path: "/dashboard/prospect/profile", label: "Mon profil" },
-        ];
+        { path: "/dashboard/prospect/profile", label: "Mon profil" },
+      ];
 
   return (
     <header className="bg-white shadow px-6 py-3 flex justify-end items-center">
-      
+
 
       {/* Menu Mon Compte */}
       <div className="relative">
@@ -61,9 +62,10 @@ const Header =  ({
 
             {/* Déconnexion */}
             <button
-              onClick={() => {
+              onClick={async () => {
                 localStorage.clear();
-                window.location.href = `/${lng}/login`
+                if (signOut) await signOut(); // Déconnexion Clerk
+                window.location.href = `/${lng}/login`;
               }}
               className="w-full text-left px-4 py-3 text-red-600 hover:bg-gray-100"
             >

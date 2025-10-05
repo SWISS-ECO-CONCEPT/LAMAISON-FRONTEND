@@ -1,6 +1,7 @@
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import  {Outlet}  from 'react-router-dom'
+import  {Navigate, Outlet, useParams}  from 'react-router-dom'
+import { useAuth, useUser } from '@clerk/clerk-react';
 
 // Déclare le type des propriétés (props) attendues par Layout
 // Ici, 'children' est le contenu dynamique qu'on va afficher entre Navbar et Footer
@@ -14,6 +15,10 @@ import  {Outlet}  from 'react-router-dom'
 // const Layout: React.FC<PageProps> = ({ children }: PageProps) => {
 
 const Layout: React.FC = () => {
+    const { user }: any = useUser();
+    // const { lng } = useParams<{ lng: string }>();
+    console.log(user)
+    // if (user) return <Navigate to={`/${lng}/Dashboard`} />
     return (
         <>
 

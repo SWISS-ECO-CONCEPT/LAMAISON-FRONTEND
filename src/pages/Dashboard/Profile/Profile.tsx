@@ -1,5 +1,6 @@
 // src/pages/Dashboard/Profile/Profile.tsx
 import { useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react"; // Ajout du hook Clerk
 
 //  Définition du type UserProfile pour typer les données utilisateur
 type UserProfile = {
@@ -11,27 +12,31 @@ type UserProfile = {
 };
 
 const Profile = () => {
-  // État initial simulé (mock) de l'utilisateur
-  const [user, setUser] = useState<UserProfile>({
-    firstname: "Jean Dupont",
-    email: "jean.dupont@example.com",
-    phone: "670000000",
-    // role: (localStorage.getItem("role") as "AGENT" | "PROSPECT") || "PROSPECT",
-    role: location.pathname.includes("prospect") ? "PROSPECT" : "AGENT",
-    avatar: "",
+  const { user } = useUser(); // Récupère l'utilisateur Clerk
+
+  // Initialisation avec Clerk
+  const [formData, setFormData] = useState<UserProfile>({
+    firstname: user?.firstName || "",
+    email: user?.emailAddresses?.[0]?.emailAddress || "",
+    phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
+    role: (user?.publicMetadata?.role as "AGENT" | "PROSPECT") || "PROSPECT",
+    avatar: user?.imageUrl || "",
   });
 
-  //  État du formulaire, initialisé avec les données utilisateur
-  const [formData, setFormData] = useState(user);
-
-  // État pour l’aperçu de l’avatar (base64 ou URL)
-  const [preview, setPreview] = useState<string | null>(null);
+  // Aperçu avatar
+  const [preview, setPreview] = useState<string | null>(user?.imageUrl || null);
 
   useEffect(() => {
-    // Ici tu feras un fetch vers ton backend pour récupérer les vraies infos
-    // Synchronisation des états formData et preview avec les données utilisateur
-    setFormData(user);
-    setPreview(user.avatar || null);
+    if (user) {
+      setFormData({
+        firstname: user.firstName || "",
+        email: user.emailAddresses?.[0]?.emailAddress || "",
+        phone: user.phoneNumbers?.[0]?.phoneNumber || "",
+        role: (user.publicMetadata?.role as "AGENT" | "PROSPECT") || "PROSPECT",
+        avatar: user.imageUrl || "",
+      });
+      setPreview(user.imageUrl || null);
+    }
   }, [user]);
 
   //  Gestion des changements dans les champs texte du formulaire
@@ -57,9 +62,9 @@ const Profile = () => {
   //  Soumission du formulaire
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Ici tu peux envoyer formData vers ton backend ou Clerk API
     console.log("Profil mis à jour :", formData);
     alert("Profil mis à jour avec succès !");
-    setUser(formData); // Mise à jour locale (mock)
   };
 
   return (
@@ -78,7 +83,7 @@ const Profile = () => {
           ) : (
             // Avatar mock
             <div className="h-24 w-24 rounded-full bg-green-600 text-white flex items-center justify-center text-3xl font-bold">
-              {user.firstname[0]} {/* ✅ Première lettre du prénom */}
+              {formData.firstname[0] || "?"} {/* ✅ Première lettre du prénom */}
             </div>
           )}
           {/* Input caché pour uploader une image */}
@@ -91,12 +96,12 @@ const Profile = () => {
         {/* Infos utilisateur */}
         <div>
           <h1 className="text-2xl font-bold">
-            {user.firstname}
+            {formData.firstname}
           </h1>
           <p className="text-gray-600">
-            {user.role === "AGENT" ? "Agent Immobilier" : "Particulier"}
+            {formData.role === "AGENT" ? "Agent Immobilier" : "Particulier"}
           </p>
-          <p className="text-gray-500">{user.email}</p>
+          <p className="text-gray-500">{formData.email}</p>
         </div>
       </div>
 
