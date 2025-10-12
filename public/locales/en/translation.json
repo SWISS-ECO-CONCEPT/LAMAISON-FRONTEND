@@ -12,7 +12,8 @@
         "ann": "Listings",
         "aprop": "About",
         "cont": "Contact",
-        "connex": "Login"
+        "connex": "Login",
+        "dash" : "Dashboard"
     },
     "annonceCard": {
         "btn": "See more",

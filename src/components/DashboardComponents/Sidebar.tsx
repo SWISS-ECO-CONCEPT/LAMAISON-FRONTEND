@@ -2,12 +2,13 @@ import { Link } from "react-router-dom";
 // import { useState } from "react";
 import logo from "../../assets/logo.jpg";
 import { Menu, Home, FilePlus, List, User, Heart, MessageCircleIcon, Calendar, Settings } from "lucide-react";
+import { useUser } from "@clerk/clerk-react";
 
 const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: (val: boolean) => void }) => {
   // const [open, setOpen] = useState(false);
-
+  const { user } = useUser();
   // Rôle simulé depuis localStorage ( à remplacer avec AuthContext plus tard)
-  const role = location.pathname.includes("prospect") ? "PROSPECT" : "AGENT";
+  const role = (user?.unsafeMetadata?.role as "AGENT" | "PROSPECT") || "PROSPECT";
 
   const links =
     role === "AGENT"

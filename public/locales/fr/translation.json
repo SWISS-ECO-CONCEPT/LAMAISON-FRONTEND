@@ -12,7 +12,8 @@
         "ann": "Annonces",
         "aprop": "À propos",
         "cont": "Contact",
-        "connex": "Connexion"
+        "connex": "Connexion",
+        "dash" : "Tableau de bord"
     },
     "annonceCard": {
         "btn": "Voir plus",

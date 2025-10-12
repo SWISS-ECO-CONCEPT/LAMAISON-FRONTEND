@@ -4,8 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 
 const Header = ({
-  // sidebarOpen,
-  // setSidebarOpen,
+
 }: {
   sidebarOpen: boolean;
   setSidebarOpen: (val: boolean) => void;
@@ -22,10 +21,10 @@ const Header = ({
   const menuItems =
     role === "AGENT"
       ? [
-        { path: "/dashboard/agent/profile", label: "Mon profil" },
+        { path: `/${lng}/home`, label: "Retour sur site" },
       ]
       : [
-        { path: "/dashboard/prospect/profile", label: "Mon profil" },
+        { path: `/${lng}/home`, label: "Retour sur site" },
       ];
 
   return (
