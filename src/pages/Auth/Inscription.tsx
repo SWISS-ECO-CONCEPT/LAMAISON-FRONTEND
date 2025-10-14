@@ -19,6 +19,10 @@ const Inscription = () => {
   const { signUp, setActive: setActiveSignUp } = useSignUp();
   const [verifying, setVerifying] = useState(false);
   // const [codeVerification, _setCodeVerification] = useState("");
+  const [, setServerError] = useState<string | null>(null);
+  const [, setInfoMessage] = useState<string | null>(null);
+  const [, setEmailForVerification] = useState<string | null>(null);
+  const [, setLastSentAt] = useState<number | null>(null);
 
   // Initial values
   const initialValues = {
@@ -40,42 +44,21 @@ const Inscription = () => {
     validateOnChange: true,
   });
 
-  // const handleSignUp = async (values: typeof initialValues) => {
-  //   let setSubmitting = formik.setSubmitting;
-  //   if (!signUp || !setActiveSignUp) {
-  //     throw new Error('Issue while signing up');
-  //   };
 
-  //   // Création de l’utilisateur dans Clerk
-  //   const result = {
-  //     emailAddress: values.email,
-  //     password: values.password,
-  //     firstname: values.firstname,
-  //     role: values.role,
-  //   }
 
-  //   try {
-  //     await signUp.create(result);
 
-  //     // Finalisation (l’utilisateur est connecté automatiquement après signup)
-  //     // await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-  //     // await setActive({ session: result.createdSessionId });
 
-  //     console.log("✅ Inscription Clerk réussie :", result);
-  //     navigate(`/${lng}/dashboard`);
-  //   } catch (error: any) {
-  //     console.error("❌ Erreur Clerk", error.errors || error.message);
-  //   } finally {
-  //     setSubmitting(false);
-  //   }
-  // }
   const handleSignUp = async (values: typeof initialValues) => {
+    setServerError(null);
     let setSubmitting = formik.setSubmitting;
     if (!signUp || !setActiveSignUp) {
-      throw new Error('Issue while signing up');
+      throw new Error('Issue while signing up')
     }
 
     try {
+      // experience UX 
+      setInfoMessage("Création du compte en cours…");
+
       // Création de l’utilisateur dans Clerk
       await signUp.create({
         emailAddress: values.email,
@@ -83,41 +66,37 @@ const Inscription = () => {
         unsafeMetadata: {
           firstName: values.firstname,
           role: values.role
-        }, // 🔥 rôle custom stocké côté Clerk
+        }, // rôle custom stocké côté Clerk
       });
 
+      // prepare verification (email code)
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+
+      // store for the verification screen
+      setEmailForVerification(values.email);
+      setLastSentAt(Date.now());
       setVerifying(true)
       alert("code envoyé à votre email")
-     
+      setInfoMessage("Un code vient d'être envoyé à votre adresse e-mail.");
     } catch (error: any) {
-      console.error("❌ Erreur Clerk", error.errors || error.message);
+      console.error(" Erreur Clerk", error.errors || error.message);
+
+      // user friendly messages
+      const msg =
+        error?.errors?.[0]?.longMessage ||
+        error?.message ||
+        "Erreur lors de la création du compte. Vérifiez vos informations et réessayez.";
+      setServerError(msg);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // const handleVerification = async () => {
-  //   try{
-  //     if(!signUp) return undefined;
-  //     const completeAuth = await signUp.attemptVerification({
-  //       strategy: 'email_code', 
-  //       code: codeVerification,
-  //     })
-  //     if (completeAuth.status === 'complete') {
-  //       await setActiveSignUp({ session: completeAuth.createdSessionId });
-  //       console.log("✅ Inscription Clerk réussie :", completeAuth);
-  //       navigate(`/${lng}/dashboard`);
-  //     }
-  //   } catch (error: any) {
-  //     console.error("❌ Erreur Clerk", error.errors || error.message);
-  //   }
-  // }
-if (verifying) {
-  return (
-    <VerificationCode />
-  )
-}
+  if (verifying) {
+    return (
+      <VerificationCode />
+    )
+  }
   return (
     <div className="mt-24 px-4 max-w-lg mx-auto">
       <h2 className="text-3xl font-bold text-center mb-8 text-green-600">
@@ -134,6 +113,7 @@ if (verifying) {
             {t("rdvModal.prenom")}
           </label>
           <input
+            id="firstname"
             type="text"
             name="firstname"
             value={formik.values.firstname}
@@ -153,6 +133,7 @@ if (verifying) {
             Email
           </label>
           <input
+            id="email"
             type="email"
             name="email"
             value={formik.values.email}
@@ -172,6 +153,7 @@ if (verifying) {
             {t("connexion.mdp")}
           </label>
           <input
+            id="password"
             type="password"
             name="password"
             value={formik.values.password}
@@ -191,11 +173,13 @@ if (verifying) {
             {t("inscription.jeSuis")}
           </label>
           <select
+            id="role"
             name="role"
             value={formik.values.role}
             onChange={formik.handleChange}
             onBlur={formik.handleBlur}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 disabled:opacity-60"
+            disabled={formik.isSubmitting}
           >
             <option value="">{t("inscription.choisirR")}</option>
             <option value="PROSPECT">{t("inscription.prospect")}</option>
@@ -207,13 +191,25 @@ if (verifying) {
         </div>
 
         <div id="clerk-captcha"></div>
+
         {/* Bouton */}
         <button
           type="submit"
           disabled={formik.isSubmitting}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-60"
+          aria-busy={formik.isSubmitting}
         >
-          {t("inscription.inscrire")}
+          {formik.isSubmitting ? (
+            <>
+              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+              </svg>
+              <span>Création en cours…</span>
+            </>
+          ) : (
+            <span>{t("inscription.inscrire")}</span>
+          )}
         </button>
 
         <p className="text-sm text-center text-gray-600">

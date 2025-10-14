@@ -89,7 +89,7 @@ function LocaleWrapper() {
           <Route path="/legal-notice" element={<MentionsLegales />} />
           <Route path="/confidentiality" element={<Confidentialite />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/:lng/verify-email" element={<VerificationCode />} />
         </Route>
       </Routes>

@@ -18,8 +18,8 @@ const VerificationCode = () => {
 
       if (result?.status === "complete") {
         await setActiveSignUp?.({ session: result?.createdSessionId });
-        alert("✅ Compte vérifié avec succès !");
-        navigate(`/${lng}/dashboard`);
+        alert("Compte vérifié avec succès !");
+        setTimeout(() =>navigate(`/${lng}/dashboard`), 800);
       } else {
         alert("Code incorrect ou expiré. Réessaye !");
       }

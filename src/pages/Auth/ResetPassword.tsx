@@ -1,200 +1,149 @@
-import { t } from 'i18next';
-import { Formik, Form, Field, ErrorMessage } from 'formik';
-import * as Yup from 'yup';
-import React, { useState } from 'react';
-import { useParams } from 'react-router-dom';
+import React from "react";
+import { useFormik } from "formik";
+import * as Yup from "yup";
+import { useSignIn, useClerk } from "@clerk/clerk-react";
+import {  useNavigate, useParams } from "react-router-dom";
+
+// Schéma de validation Yup
+const ResetPasswordSchema = Yup.object().shape({
+  code: Yup.string()
+    .required("Le code de vérification est requis")
+    .length(6, "Le code doit contenir 6 chiffres"),
+  password: Yup.string()
+    .required("Le mot de passe est requis")
+    .min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+});
 
 const ResetPassword: React.FC = () => {
-  const { token } = useParams<{ token: string }>();
-  const [message, setMessage] = useState('');
+  const { isLoaded, signIn } = useSignIn();
+  const { setActive } = useClerk();
+  const navigate = useNavigate();
+  // const location = useLocation();
+  const { lng } = useParams<{ lng: string }>();
 
-  const validationSchema = Yup.object({
-    password: Yup.string()
-      .min(6, '6 caractères minimum')
-      .required('Mot de passe requis'),
-    confirm: Yup.string()
-      .oneOf([Yup.ref('password')], 'Les mots de passe ne correspondent pas')
-      .required('Confirmation requise'),
+  const [serverMessage, setServerMessage] = React.useState("");
+
+  //  Initialisation de Formik
+  const formik = useFormik({
+    initialValues: {
+      code: "",
+      password: "",
+    },
+    validationSchema: ResetPasswordSchema,
+    onSubmit: async (values, { setSubmitting }) => {
+      if (!isLoaded) return;
+
+      try {
+        const result = await signIn.attemptFirstFactor({
+          strategy: "reset_password_email_code",
+          code: values.code,
+          password: values.password,
+        });
+
+        if (result.status === "complete") {
+          await setActive({ session: result.createdSessionId });
+          setServerMessage("Mot de passe réinitialisé avec succès ");
+
+          // Petit délai avant redirection pour UX
+          setTimeout(() => navigate(`/${lng}/dashboard`), 800);
+        } else {
+          setServerMessage("Une étape est manquante.");
+        }
+      } catch (err: any) {
+        console.error("Erreur:", err);
+        setServerMessage(err.errors?.[0]?.message || "Code invalide ou expiré.");
+      } finally {
+        setSubmitting(false);
+      }
+    },
   });
 
-  const handleSubmit = async (values: { password: string; confirm: string }) => {
-    try {
-      const res = await fetch(`http://localhost:5000/auth/reset-password/${token}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: values.password }),
-      });
-      const data = await res.json();
-      setMessage(data.message || 'Mot de passe réinitialisé');
-    } catch {
-      setMessage('Erreur réseau');
-    }
-  };
-
   return (
-    <div className="mt-24 px-4 max-w-lg mx-auto">
-      <h2 className="text-3xl font-bold text-center mb-8 text-green-600">
-        {t('resetPassword.titre')}
+    <div className="mt-24 px-4 max-w-md mx-auto">
+      <h2 className="text-3xl font-bold text-center mb-6 text-green-600">
+        Réinitialisation du mot de passe
       </h2>
 
-      <Formik
-        initialValues={{ password: '', confirm: '' }}
-        validationSchema={validationSchema}
-        onSubmit={handleSubmit}
+      <form
+        onSubmit={formik.handleSubmit}
+        className="bg-white shadow-md rounded-2xl p-6 space-y-4"
       >
-        {({ isSubmitting }) => (
-          <Form className="bg-white shadow-xl rounded-2xl px-8 py-10 space-y-6">
-            <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {t('resetPassword.nouveau')}
-              </label>
-              <Field
-                type="password"
-                name="password"
-                placeholder={t('resetPassword.placeholder')}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-              />
-              <ErrorMessage
-                name="password"
-                component="div"
-                className="text-red-500 text-sm mt-1"
-              />
-            </div>
+        {/* Champ code */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Code de vérification
+          </label>
+          <input
+            type="text"
+            id="code"
+            name="code"
+            value={formik.values.code}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 ${
+              formik.touched.code && formik.errors.code
+                ? "border-red-500 focus:ring-red-500"
+                : "focus:ring-green-500"
+            }`}
+            placeholder="6 chiffres reçus par email"
+          />
+          {formik.touched.code && formik.errors.code && (
+            <p className="text-red-500 text-sm mt-1">{formik.errors.code}</p>
+          )}
+        </div>
 
-            <div>
-              <label
-                htmlFor="confirm"
-                className="block text-sm font-medium text-gray-700 mb-1"
-              >
-                {t('resetPassword.confirm')}
-              </label>
-              <Field
-                type="password"
-                name="confirm"
-                placeholder={t('resetPassword.placeholderConfirm')}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-              />
-              <ErrorMessage
-                name="confirm"
-                component="div"
-                className="text-red-500 text-sm mt-1"
-              />
-            </div>
+        {/* Champ mot de passe */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Nouveau mot de passe
+          </label>
+          <input
+            type="password"
+            id="password"
+            name="password"
+            value={formik.values.password}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 ${
+              formik.touched.password && formik.errors.password
+                ? "border-red-500 focus:ring-red-500"
+                : "focus:ring-green-500"
+            }`}
+            placeholder="Nouveau mot de passe"
+          />
+          {formik.touched.password && formik.errors.password && (
+            <p className="text-red-500 text-sm mt-1">
+              {formik.errors.password}
+            </p>
+          )}
+        </div>
 
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition"
-            >
-              {isSubmitting ? t('resetPassword.chargement') : t('resetPassword.bouton')}
-            </button>
+        {/* Bouton de soumission */}
+        <button
+          type="submit"
+          disabled={formik.isSubmitting}
+          className={`w-full text-white font-semibold py-3 rounded-lg transition ${
+            formik.isSubmitting
+              ? "bg-gray-400 cursor-not-allowed"
+              : "bg-green-600 hover:bg-green-700"
+          }`}
+        >
+          {formik.isSubmitting ? "Traitement..." : "Réinitialiser le mot de passe"}
+        </button>
 
-            {message && (
-              <p className="text-sm text-center text-red-600 mt-2 animate-fade-in">
-                {message}
-              </p>
-            )}
-          </Form>
+        {/* Message serveur */}
+        {serverMessage && (
+          <p
+            className={`text-center text-sm mt-2 ${
+              serverMessage.includes("succès") ? "text-green-600" : "text-red-600"
+            }`}
+          >
+            {serverMessage}
+          </p>
         )}
-      </Formik>
+      </form>
     </div>
   );
 };
 
 export default ResetPassword;
-
-
-
-
-// import { t } from 'i18next';
-// import React, { useState } from 'react'
-// import { useParams } from 'react-router-dom';
-
-
-// const ResetPassword: React.FC = () => {
-//     const { token } = useParams<{ token: string }>();
-//     const [password, setPassword] = useState('');
-//     const [confirm, setConfirm] = useState('');
-//     const [message, setMessage] = useState('');
-//     const [loading, setLoading] = useState(false);
-
-//     const handleSubmit = async (e: React.FormEvent) => {
-//         e.preventDefault();
-//         if (password !== confirm) {
-//             setMessage('Les mots de passe ne correspondent pas');
-//             return;
-//         }
-//         setLoading(true);
-//         try {
-
-//             const res = await fetch(`http://localhost:5000/auth/reset-password/${token}`, {
-//                 method: 'POST',
-//                 headers: { 'Content-Type': 'application/json' },
-//                 body: JSON.stringify({ password }),
-//             });
-//             const data = await res.json();
-//             setMessage(data.message || 'Mot de passe réinitialisé');
-//         } catch (err) {
-//             setMessage('Erreur réseau');
-//         }
-//         finally {
-//             setLoading(false);
-//         }
-//     };
-
-//     return (
-//         <div className="mt-24 px-4 max-w-lg mx-auto">
-//             <h2 className="text-3xl font-bold text-center mb-8 text-green-600">
-//                 {t('resetPassword.titre')}
-//             </h2>
-
-//             <form onSubmit={handleSubmit} className="bg-white shadow-xl rounded-2xl px-8 py-10 space-y-6">
-//                 <div>
-//                     <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-//                         {t('resetPassword.nouveau')}
-//                     </label>
-//                     <input
-//                         type="password"
-//                         name="password"
-//                         value={password}
-//                         onChange={e => setPassword(e.target.value)}
-//                         required
-//                         placeholder={t('resetPassword.placeholder')}
-//                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-//                     />
-//                 </div>
-//                 <div>
-//                     <label htmlFor="confirm" className="block text-sm font-medium text-gray-700 mb-1">
-//                         {t('resetPassword.confirm')}
-//                     </label>
-//                     <input
-//                         type="password"
-//                         name="confirm"
-//                         value={confirm}
-//                         onChange={e => setConfirm(e.target.value)}
-//                         required
-//                         placeholder={t('resetPassword.placeholderConfirm')}
-//                         className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-//                     />
-//                 </div>
-
-//                 <button
-//                     type="submit"
-//                     disabled={loading}
-//                     className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
-//                     {loading ? t('resetPassword.chargement') : t('resetPassword.bouton')}
-//                 </button>
-//                 {message && (
-//                     <p className="text-sm text-center text-red-600 mt-2 animate-fade-in">
-//                         {message}
-//                     </p>
-//                 )}
-//             </form>
-//         </div>
-
-//     );
-// };
-// export default ResetPassword;

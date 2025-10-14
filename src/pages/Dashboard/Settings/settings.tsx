@@ -31,11 +31,11 @@ const Settings = () => {
 
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold mb-6">⚙️ Paramètres</h1>
+      <h1 className="text-2xl font-bold mb-6">Paramètres</h1>
 
       {/* Mot de passe */}
       <section className="bg-white p-6 shadow rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">🔑 Sécurité</h2>
+        <h2 className="text-xl font-semibold mb-4"> Sécurité</h2>
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div>
             <label className="block text-gray-700 mb-1">Mot de passe actuel</label>
@@ -84,7 +84,7 @@ const Settings = () => {
 
       {/* Langue */}
       <section className="bg-white p-6 shadow rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">🌍 Langue</h2>
+        <h2 className="text-xl font-semibold mb-4"> Langue</h2>
         <select
           value={language}
           onChange={(e) => setLanguage(e.target.value)}
@@ -97,7 +97,7 @@ const Settings = () => {
 
       {/* Notifications */}
       <section className="bg-white p-6 shadow rounded-lg">
-        <h2 className="text-xl font-semibold mb-4">🔔 Notifications</h2>
+        <h2 className="text-xl font-semibold mb-4"> Notifications</h2>
         <div className="space-y-3">
           <label className="flex items-center gap-3">
             <input
