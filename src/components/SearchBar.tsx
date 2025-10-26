@@ -167,7 +167,7 @@ const SearchBar: React.FC = () => {
             <h3 className="text-lg font-bold text-gray-800">{t('searchbar.crit')}</h3>
             <button
               onClick={() => setIsFilterOpen(false)}
-              className="text-gray-500 hover:text-gray-700"
+              className="text-gray-500 hover:text-red-700"
               aria-label="Fermer"
             >
               <FaTimes className="text-xl" />
