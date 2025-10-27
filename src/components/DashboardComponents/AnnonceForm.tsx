@@ -10,6 +10,7 @@ const AnnonceForm: React.FC = () => {
     titre: "",
     description: "",
     prix: "",
+    ville: "",
     type: "maison",
     surface: "",
     chambres: "",
@@ -17,6 +18,8 @@ const AnnonceForm: React.FC = () => {
   });
 
   const [images, setImages] = useState<File[]>([]); // stockage des fichiers
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -29,30 +32,49 @@ const AnnonceForm: React.FC = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+    setIsSubmitting(true);
 
-    //  Ici on enverra l'annonce au backend via API
-    // const annoncePayload = {
-    //   ...formData,
-    //   auteurType: "AGENT"
-    // };
     const annoncePayload = new FormData();
     annoncePayload.append("titre", formData.titre);
     annoncePayload.append("description", formData.description);
     annoncePayload.append("prix", formData.prix);
+    annoncePayload.append("ville", formData.ville);
     annoncePayload.append("type", formData.type);
     annoncePayload.append("surface", formData.surface);
     annoncePayload.append("chambres", formData.chambres);
     annoncePayload.append("douches", formData.douches);
     annoncePayload.append("auteurType", "AGENT");
 
-    images.forEach((file, _index) => {
-      annoncePayload.append("images", file); // "images" doit correspondre au champ attendu par ton backend
+    images.forEach((file) => {
+      annoncePayload.append("images", file); // doit matcher le champ attendu par le backend
     });
 
-    console.log("Annonce publiée :", annoncePayload);
-    alert(`Annonce publiée avec succès`);
+    try {
+      const res = await fetch("http://localhost:5000/annonces", {
+        method: "POST",
+        body: annoncePayload, // multipart/form-data; browser gère l'entête
+      });
+
+      if (!res.ok) {
+        // essaie d'extraire le message d'erreur renvoyé par le serveur
+        const text = await res.text();
+        throw new Error(text || `Erreur serveur (${res.status})`);
+      }
+
+   
+
+   
+      alert("Annonce publiée avec succès");
+    } catch (err: any) {
+      console.error("Erreur lors de l'envoi de l'annonce:", err);
+      setError(err?.message || "Erreur inconnue");
+      alert(`Erreur : ${err?.message || "Echec de l'envoi"}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -100,6 +122,20 @@ const AnnonceForm: React.FC = () => {
             required
           />
         </div>
+
+        {/*Ville*/}
+           <div>
+          <label className="block text-gray-700 mb-1">Ville</label>
+          <input
+            type="text"
+            name="ville"
+            value={formData.ville}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-md"
+            required
+          />
+        </div>
+
 
         {/* Type de bien */}
         <div>
@@ -185,10 +221,12 @@ const AnnonceForm: React.FC = () => {
         {/* Bouton */}
         <button
           type="submit"
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-600"
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:opacity-60"
+          disabled={isSubmitting}
         >
-          Publier
+          {isSubmitting ? "Publication…" : "Publier"}
         </button>
+        {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       </form>
     </div>
   );
