@@ -50,7 +50,7 @@ const Inscription = () => {
 
   const handleSignUp = async (values: typeof initialValues) => {
     setServerError(null);
-    let setSubmitting = formik.setSubmitting;
+    const setSubmitting = formik.setSubmitting;
     if (!signUp || !setActiveSignUp) {
       throw new Error('Issue while signing up')
     }
@@ -64,7 +64,7 @@ const Inscription = () => {
         emailAddress: values.email,
         password: values.password,
         unsafeMetadata: {
-          firstName: values.firstname,
+          firstname: values.firstname,
           role: values.role
         }, // rôle custom stocké côté Clerk
       });
@@ -78,14 +78,20 @@ const Inscription = () => {
       setVerifying(true)
       alert("code envoyé à votre email")
       setInfoMessage("Un code vient d'être envoyé à votre adresse e-mail.");
-    } catch (error: any) {
-      console.error(" Erreur Clerk", error.errors || error.message);
+    } catch (error: unknown) {
+      // Log the raw error for debugging
+      console.error("Erreur Clerk", error);
 
       // user friendly messages
-      const msg =
-        error?.errors?.[0]?.longMessage ||
-        error?.message ||
-        "Erreur lors de la création du compte. Vérifiez vos informations et réessayez.";
+      let msg = "Erreur lors de la création du compte. Vérifiez vos informations et réessayez.";
+
+      if (error instanceof Error) {
+        msg = error.message || msg;
+      } else if (typeof error === "object" && error !== null) {
+        const err = error as { errors?: Array<{ longMessage?: string }>; message?: string };
+        msg = err?.errors?.[0]?.longMessage || err?.message || msg;
+      }
+
       setServerError(msg);
     } finally {
       setSubmitting(false);

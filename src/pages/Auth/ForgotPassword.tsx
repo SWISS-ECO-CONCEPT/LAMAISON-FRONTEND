@@ -26,9 +26,19 @@ const ForgotPassword: React.FC = () => {
       setMessage("Un code à 6 chiffres vous a été envoyé par e-mail");
       navigate("/reset-password", { state: { email: values.email } });
 
-    } catch (err: any) {
+    } catch (err) {
       console.error("Erreur Clerk:", err);
-      setMessage(err.errors?.[0]?.message || "Erreur réseau");
+      // Type guard for Clerk error
+      let msg = "Erreur réseau";
+      if (typeof err === "object" && err !== null && "errors" in err) {
+        const errors = (err as { errors?: { message?: string }[] }).errors;
+        if (errors && errors[0]?.message) {
+          msg = errors[0].message;
+        }
+      } else if (err instanceof Error) {
+        msg = err.message;
+      }
+      setMessage(msg);
     }
   };
 
