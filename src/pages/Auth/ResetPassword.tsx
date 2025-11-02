@@ -49,9 +49,19 @@ const ResetPassword: React.FC = () => {
         } else {
           setServerMessage("Une étape est manquante.");
         }
-      } catch (err: any) {
+      } catch (err) {
         console.error("Erreur:", err);
-        setServerMessage(err.errors?.[0]?.message || "Code invalide ou expiré.");
+        // Type guard for Clerk error
+        let msg = "Code invalide ou expiré.";
+        if (typeof err === "object" && err !== null && "errors" in err) {
+          const errors = (err as { errors?: { message?: string }[] }).errors;
+          if (errors && errors[0]?.message) {
+            msg = errors[0].message;
+          }
+        } else if (err instanceof Error) {
+          msg = err.message;
+        }
+        setServerMessage(msg);
       } finally {
         setSubmitting(false);
       }

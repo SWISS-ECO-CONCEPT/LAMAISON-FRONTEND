@@ -52,7 +52,7 @@ const Connexion = () => {
       } else {
         alert('Veuillez compléter la connexion');
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error during sign-in:', err);
       alert('Failed to sign in. Please check your credentials and try again.');
     } finally {
