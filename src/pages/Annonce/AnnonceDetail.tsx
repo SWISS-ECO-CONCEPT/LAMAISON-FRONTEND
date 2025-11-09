@@ -1,6 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { AnnoncesMock } from '../../lib/mock'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 import OwnerCard from '../../components/OwnerCard'
@@ -9,16 +8,43 @@ import { FaBed, FaRulerCombined, FaShower } from 'react-icons/fa'
 import { t } from 'i18next'
 import DateSejourPicker, { type DatesSejour } from '../../components/DateSejourPicker'
 
-interface Proprietaire {
-  nom: string;
-  tel: string;
-  email: string;
-  type: 'AGENT' | 'PROSPECT';
+type ProprietaireOwnerCard = {
+  nom: string
+  tel: string
+  email: string
+  type: 'AGENT' | 'PROSPECT' 
 }
+
+type Annonce = {
+  id: number
+  titre: string
+  description: string
+  prix: number
+  ville: string
+  type?: string | null
+  surface?: number | null
+  chambres?: number | null
+  douches?: number | null
+  images: string[]
+  proprietaire?: {
+    firstname: string
+    role: 'AGENT' | 'PROSPECT'
+    phone?: string | null
+    avatar?: string | null
+  } | null
+  createdAt?: string
+}
+
+const API_BASE = 'http://localhost:5000'
+
+// Utilitaire: transforme une URL relative (ex: /uploads/xxx.jpg) en URL absolue
+const toAbsoluteUrl = (u: string) => (u?.startsWith('http') ? u : `${API_BASE}${u || ''}`)
 
 const AnnonceDetail: React.FC = () => {
   const { id } = useParams()
-  const a = AnnoncesMock.find((annonce) => annonce.id === Number(id))
+  const [a, setAnnonce] = useState<Annonce | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [showRdv, setShowRdv] = useState(false)
 
   // Typage explicite
@@ -27,7 +53,49 @@ const AnnonceDetail: React.FC = () => {
     endDate: null
   })
 
+  useEffect(() => {
+    let cancelled = false
+    const run = async () => {
+      if (!id) return
+      setLoading(true)
+      setError(null)
+      try {
+        const res = await fetch(`${API_BASE}/annonces/${id}`, { credentials: 'include' })
+        if (!res.ok) {
+          const text = await res.text()
+          throw new Error(text || `Erreur serveur (${res.status})`)
+        }
+        const data: Annonce = await res.json()
+        if (!cancelled) setAnnonce(data)
+      } catch (e: unknown) {
+        if (!cancelled) setError(e instanceof Error ? e.message : String(e))
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    run()
+    return () => { cancelled = true }
+  }, [id])
+
   const isMeuble = a?.type?.toLowerCase() === 'meublé'
+
+  if (loading) {
+    return (
+      <div className="mt-24 px-4">
+        <div className="text-center text-gray-600">Chargement…</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="mt-24 px-4">
+        <div className="bg-red-100 text-red-700 p-4 rounded text-center shadow">
+          <h1 className="text-lg sm:text-xl font-semibold">{error}</h1>
+        </div>
+      </div>
+    )
+  }
 
   if (!a) {
     return (
@@ -39,8 +107,7 @@ const AnnonceDetail: React.FC = () => {
     )
   }
 
-  const proprietaire: Proprietaire = a.proprietaire
-  if (!proprietaire) {
+  if (!a.proprietaire) {
     return (
       <div className="mt-24 px-4">
         <div className="bg-yellow-100 text-yellow-800 p-4 rounded text-center shadow">
@@ -48,6 +115,13 @@ const AnnonceDetail: React.FC = () => {
         </div>
       </div>
     )
+  }
+
+  const proprietaire: ProprietaireOwnerCard = {
+    nom: a.proprietaire.firstname || 'N/A',
+    tel: a.proprietaire.phone || '',
+    email: '',
+    type: a.proprietaire.role,
   }
 
   return (
@@ -63,7 +137,7 @@ const AnnonceDetail: React.FC = () => {
         >
           {a.images.map((img: string, index: number) => (
             <SwiperSlide key={index}>
-              <img src={img} alt={`${a.titre} - ${index + 1}`} className="w-full h-full object-cover" />
+              <img src={toAbsoluteUrl(img)} alt={`${a.titre} - ${index + 1}`} className="w-full h-full object-cover" />
             </SwiperSlide>
           ))}
         </Swiper>
@@ -87,7 +161,7 @@ const AnnonceDetail: React.FC = () => {
             <FaShower />
             <p><span className="font-semibold">{t('annonceDetail.douches')} :</span> {a.douches}</p>
           </div>
-          <p><span className="font-semibold">{t('annonceDetail.pub')} :</span> {a.date}</p>
+          <p><span className="font-semibold">{t('annonceDetail.pub')} :</span> {a.createdAt ? new Date(a.createdAt).toLocaleDateString() : ''}</p>
         </div>
 
         {/* Aperçu */}
@@ -98,7 +172,7 @@ const AnnonceDetail: React.FC = () => {
               <p className="text-sm text-gray-700 leading-relaxed">
                 {a.description}
                 <span className="block mt-2 font-medium text-green-700">
-                  Prix : {a?.prix?.toLocaleString()} FCFA /mois - 8 mois de loyer
+                  Prix : {a?.prix?.toLocaleString()} FCFA
                 </span>
               </p>
             </div>
