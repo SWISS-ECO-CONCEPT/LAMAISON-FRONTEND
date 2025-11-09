@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+// AnnonceForm.tsx
+import React, { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
 
 type FormObject = {
@@ -10,148 +11,198 @@ type FormObject = {
   surface: string | number;
   chambres: string | number;
   douches: string | number;
-  images?: string[];
+  images?: string[]; // URLs retournées par l'API d'images
 };
+
+const API_BASE = "http://localhost:5000";
 
 const AnnonceForm: React.FC = () => {
   const { getToken } = useAuth();
-  // const location = useLocation();
-  // const role = location.pathname.includes("prospect") ? "PROSPECT" : "AGENT";
+  const { user } = useUser();
+
   const [formData, setFormData] = useState<FormObject>({
     titre: "",
     description: "",
     prix: "",
     ville: "",
-    type: "",
+    type: "maison",
     surface: "",
     chambres: "",
-    douches: ""
+    douches: "",
+    images: [],
   } as FormObject);
 
-  const [images, setImages] = useState<File[]>([]); // stockage des fichiers
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]); // fichiers choisis par l'utilisateur
+  const [previewUrls, setPreviewUrls] = useState<string[]>([]); // object URLs pour preview local
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-    console.log(formData);
+  // Met à jour previewUrls quand selectedFiles change, et nettoie les anciens object URLs
+  useEffect(() => {
+    // revoke old urls
+    previewUrls.forEach((url) => URL.revokeObjectURL(url));
+
+    const newPreviewUrls = selectedFiles.map((file) => URL.createObjectURL(file));
+    setPreviewUrls(newPreviewUrls);
+
+    return () => {
+      newPreviewUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedFiles]);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Gestion upload images
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.length) return;
-    
-    setIsSubmitting(true);
+  // Quand l'utilisateur choisit des fichiers dans l'input
+  const handleFileSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    setSelectedFiles(files);
+    // reset any previous URLs stored in formData (we'll re-upload when user clicks "Upload images" implicitly)
+    setFormData((prev) => ({ ...prev, images: prev.images ?? [] }));
+  };
+
+  // Upload des images sélectionnées vers /images (un fichier par requête car ton router utilise upload.single("file"))
+  // Cette fonction renvoie un tableau d'URLs (strings). Elle est appelée automatiquement avant l'envoi de l'annonce.
+  const uploadImages = async (files: File[]): Promise<string[]> => {
+    if (!files.length) return [];
+
+    setIsUploadingImages(true);
     setError(null);
-    
+
     try {
       const token = await getToken();
-      if (!token) {
-        throw new Error("Vous devez être connecté pour uploader des images");
-      }
+      if (!token) throw new Error("Vous devez être connecté pour uploader des images.");
 
-      const selectedFiles = Array.from(e.target.files);
-      const uploadedUrls: string[] = [];
+      // Upload en parallèle (Promise.all). Chaque requête envoie le champ 'file' car multer est configuré en upload.single("file")
+      const uploadPromises = files.map(async (file) => {
+        const fd = new FormData();
+        fd.append("file", file); // IMPORTANT: field name 'file' pour matcher upload.single("file")
 
-      // Upload each image
-      for (const file of selectedFiles) {
-        const formData = new FormData();
-        formData.append('image', file);
-
-        const uploadRes = await fetch('http://localhost:5000/images', {
-          method: 'POST',
+        const res = await fetch(`${API_BASE}/images`, {
+          method: "POST",
           headers: {
-            'Authorization': `Bearer ${token}`
+            Authorization: `Bearer ${token}`,
+            // Ne pas mettre 'Content-Type' ici ; fetch le définit automatiquement pour FormData
           },
-          body: formData
+          body: fd,
+          // credentials pas nécessaire sauf si ton serveur exige cookies et les gère
         });
 
-        if (!uploadRes.ok) {
-          throw new Error(`Erreur lors de l'upload de l'image: ${file.name}`);
+        if (!res.ok) {
+          // essaie d'extraire le message d'erreur du serveur
+          const text = await res.text();
+          throw new Error(
+            text || `Erreur lors de l'upload de ${file.name} (status ${res.status})`
+          );
         }
 
-        const imageData = await uploadRes.json();
-        uploadedUrls.push(imageData.url);
-      }
+        // parsing JSON et robustesse quant au shape retourné
+        const data = await res.json();
+        // Accept common shapes: { url: '...' } ou { data: { url: '...' } }
+        const url =
+          (data && (data.url || (data.data && data.data.url))) ||
+          // fallback: peut-être que le serveur retourne { path: 'uploads/...' }
+          (data && (data.path || data.filePath)) ||
+          null;
 
-      // Store the files for preview
-      setImages(selectedFiles);
-      
-      // Update form data with image URLs
-      setFormData(prev => ({
-        ...prev,
-        images: uploadedUrls
-      }));
+        if (!url) {
+          // si ton backend renvoie un objet différent, log pour debug
+          console.warn("Réponse inattendue lors de l'upload image:", data);
+          throw new Error(`Upload réussi mais impossible d'extraire l'URL pour ${file.name}`);
+        }
 
-    } catch (err) {
-      console.error("Erreur lors de l'upload des images:", err);
-      const errMsg = err instanceof Error ? err.message : "Erreur inconnue lors de l'upload";
-      setError(errMsg);
-      alert(errMsg);
-      // Clear the file input
-      e.target.value = '';
-      setImages([]);
+        return url;
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      return uploadedUrls;
     } finally {
-      setIsSubmitting(false);
+      setIsUploadingImages(false);
     }
   };
-
-  // Get Clerk user object (contains clerk user id)
-  const { user } = useUser();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
 
-    // Build JSON payload (we'll pass Clerk id as route param)
-    const payload = {
-      titre: formData.titre,
-      description: formData.description,
-      prix: Number(formData.prix) || 0,
-      ville: formData.ville,
-      type: formData.type,
-      surface: Number(formData.surface) || 0,
-      chambres: Number(formData.chambres) || 0,
-      douches: Number(formData.douches) || 0,
-      images: formData.images || []
-    };
-
     try {
-      // Get the session token from Clerk
-      const token = await getToken();
-
-      if (!token) {
-        throw new Error("Vous devez être connecté pour créer une annonce");
+      // 1) upload images (si il y en a) et récupérer leurs URLs
+      let imageUrls: string[] = formData.images || [];
+      if (selectedFiles.length > 0) {
+        try {
+          const uploaded = await uploadImages(selectedFiles);
+          imageUrls = [...(imageUrls || []), ...uploaded];
+          // met à jour le formData afin que l'aperçu côté UI reflète les URLs uploadées
+          setFormData((prev) => ({ ...prev, images: imageUrls }));
+        } catch (imgErr) {
+          throw new Error(`Erreur lors de l'upload des images : ${(imgErr as Error).message}`);
+        }
       }
 
-      const clerkId = user?.id;
-      if (!clerkId) throw new Error('Utilisateur Clerk introuvable, reconnectez-vous');
+      // 2) construire le payload de l'annonce
+      const payload = {
+        titre: formData.titre,
+        description: formData.description,
+        prix: Number(formData.prix) || 0,
+        ville: formData.ville,
+        type: formData.type,
+        surface: Number(formData.surface) || 0,
+        chambres: Number(formData.chambres) || 0,
+        douches: Number(formData.douches) || 0,
+        images: imageUrls, // array d'URLs
+      };
 
-      const res = await fetch(`http://localhost:5000/annonces/${clerkId}`, {
+      // 3) récupérer token et clerkId
+      const token = await getToken();
+      if (!token) throw new Error("Vous devez être connecté pour créer une annonce");
+
+      const clerkId = user?.id;
+      if (!clerkId) throw new Error("Utilisateur introuvable (Clerk)");
+
+      // 4) envoi de l'annonce
+      const res = await fetch(`${API_BASE}/annonces/${clerkId}`, {
         method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
         },
-        credentials: 'include',
+        credentials: "include",
         body: JSON.stringify(payload),
       });
-      console.log("payload", payload);
-      console.log("clerkId", clerkId);
+
       if (!res.ok) {
-        // essaie d'extraire le message d'erreur renvoyé par le serveur
+        // essaie de récupérer un message utile
         const text = await res.text();
         throw new Error(text || `Erreur serveur (${res.status})`);
       }
 
-      alert("Annonce publiée avec succès");
+      // succès
+      alert("Annonce publiée avec succès !");
+      // reset simple du formulaire (optionnel : tu peux aussi rediriger)
+      setFormData({
+        titre: "",
+        description: "",
+        prix: "",
+        ville: "",
+        type: "maison",
+        surface: "",
+        chambres: "",
+        douches: "",
+        images: [],
+      });
+      setSelectedFiles([]);
     } catch (err: unknown) {
-      console.error("Erreur lors de l'envoi de l'annonce:", err);
-      // Extraire le message de façon sûre depuis un unknown
-      const errMsg =
-        err instanceof Error ? err.message : typeof err === "string" ? err : "Erreur inconnue";
+      const errMsg = err instanceof Error ? err.message : String(err);
       setError(errMsg);
+      console.error("Erreur publication annonce:", err);
       alert(`Erreur : ${errMsg}`);
     } finally {
       setIsSubmitting(false);
@@ -160,9 +211,7 @@ const AnnonceForm: React.FC = () => {
 
   return (
     <div className="bg-white p-6 shadow-md rounded-lg max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">
-        Publier une annonce (AGENT)
-      </h1>
+      <h1 className="text-2xl font-bold mb-6">Publier une annonce (AGENT)</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Titre */}
@@ -204,7 +253,7 @@ const AnnonceForm: React.FC = () => {
           />
         </div>
 
-        {/*Ville*/}
+        {/* Ville */}
         <div>
           <label className="block text-gray-700 mb-1">Ville</label>
           <input
@@ -217,8 +266,7 @@ const AnnonceForm: React.FC = () => {
           />
         </div>
 
-
-        {/* Type de bien */}
+        {/* Type */}
         <div>
           <label className="block text-gray-700 mb-1">Type de bien</label>
           <select
@@ -235,7 +283,7 @@ const AnnonceForm: React.FC = () => {
           </select>
         </div>
 
-        {/* Surface*/}
+        {/* Surface */}
         <div>
           <label className="block text-gray-700 mb-1">Surface</label>
           <input
@@ -248,9 +296,9 @@ const AnnonceForm: React.FC = () => {
           />
         </div>
 
-        {/* Chambre*/}
+        {/* Chambres */}
         <div>
-          <label className="block text-gray-700 mb-1">Chambre</label>
+          <label className="block text-gray-700 mb-1">Chambres</label>
           <input
             type="number"
             name="chambres"
@@ -261,9 +309,9 @@ const AnnonceForm: React.FC = () => {
           />
         </div>
 
-        {/* Douche*/}
+        {/* Douches */}
         <div>
-          <label className="block text-gray-700 mb-1">Douche</label>
+          <label className="block text-gray-700 mb-1">Douches</label>
           <input
             type="number"
             name="douches"
@@ -274,27 +322,40 @@ const AnnonceForm: React.FC = () => {
           />
         </div>
 
-        {/* Upload Images */}
+        {/* Upload images (choix) */}
         <div>
-          <label className="block text-gray-700 mb-1">Images du bien</label>
+          <label className="block text-gray-700 mb-1">Images du bien (plusieurs possibles)</label>
           <input
             type="file"
             multiple
             accept="image/*"
-            onChange={handleImageChange}
+            onChange={handleFileSelection}
             className="w-full border px-3 py-2 rounded-md"
           />
-          {/* Aperçu des images */}
-          {images.length > 0 && (
+
+          {/* Aperçu local */}
+          {previewUrls.length > 0 && (
             <div className="mt-2 grid grid-cols-3 gap-2">
-              {images.map((file, index) => (
+              {previewUrls.map((src, idx) => (
                 <img
-                  key={index}
-                  src={URL.createObjectURL(file)}
-                  alt={`preview-${index}`}
+                  key={idx}
+                  src={src}
+                  alt={`preview-${idx}`}
                   className="w-full h-24 object-cover rounded-md border"
                 />
               ))}
+            </div>
+          )}
+
+          {/* Aperçu des URLs uploadées (si déjà uploadées) */}
+          {formData.images && formData.images.length > 0 && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-600">Images uploadées :</p>
+              <div className="mt-1 grid grid-cols-3 gap-2">
+                {formData.images.map((url, idx) => (
+                  <img key={idx} src={url} alt={`uploaded-${idx}`} className="w-full h-24 object-cover rounded-md border" />
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -302,11 +363,21 @@ const AnnonceForm: React.FC = () => {
         {/* Bouton */}
         <button
           type="submit"
-          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:opacity-60"
-          disabled={isSubmitting}
+          className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 disabled:opacity-60 flex items-center gap-2"
+          disabled={isSubmitting || isUploadingImages}
         >
-          {isSubmitting ? "Publication…" : "Publier"}
+          {(isSubmitting || isUploadingImages) ? (
+            <>
+              <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+              </svg>
+              <span>{isSubmitting ? "Publication…" : "Upload en cours…"}</span>
+            </>
+          ) : (
+            "Publier"
+          )}
         </button>
+
         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       </form>
     </div>
@@ -314,3 +385,323 @@ const AnnonceForm: React.FC = () => {
 };
 
 export default AnnonceForm;
+
+
+
+
+// import React, { useState } from "react";
+// import { useAuth, useUser } from "@clerk/clerk-react";
+
+// type FormObject = {
+//   titre: string;
+//   description: string;
+//   prix: string | number;
+//   ville: string;
+//   type: string;
+//   surface: string | number;
+//   chambres: string | number;
+//   douches: string | number;
+//   images?: string[];
+// };
+
+// const AnnonceForm: React.FC = () => {
+//   const { getToken } = useAuth();
+//   // const location = useLocation();
+//   // const role = location.pathname.includes("prospect") ? "PROSPECT" : "AGENT";
+//   const [formData, setFormData] = useState<FormObject>({
+//     titre: "",
+//     description: "",
+//     prix: "",
+//     ville: "",
+//     type: "",
+//     surface: "",
+//     chambres: "",
+//     douches: ""
+//   } as FormObject);
+
+//   const [images, setImages] = useState<File[]>([]); // stockage des fichiers
+//   const [isSubmitting, setIsSubmitting] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+
+//   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+//     setFormData({ ...formData, [e.target.name]: e.target.value });
+//     console.log(formData);
+//   };
+
+//   // Gestion upload images
+//   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+//     if (!e.target.files?.length) return;
+    
+//     setIsSubmitting(true);
+//     setError(null);
+    
+//     try {
+//       const token = await getToken();
+//       if (!token) {
+//         throw new Error("Vous devez être connecté pour uploader des images");
+//       }
+
+//       const selectedFiles = Array.from(e.target.files);
+//       const uploadedUrls: string[] = [];
+
+//       // Upload each image
+//       for (const file of selectedFiles) {
+//         const formData = new FormData();
+//         formData.append('image', file);
+
+//         const uploadRes = await fetch('http://localhost:5000/images', {
+//           method: 'POST',
+//           headers: {
+//             'Authorization': `Bearer ${token}`
+//           },
+//           body: formData
+//         });
+
+//         if (!uploadRes.ok) {
+//           throw new Error(`Erreur lors de l'upload de l'image: ${file.name}`);
+//         }
+
+//         const imageData = await uploadRes.json();
+//         uploadedUrls.push(imageData.url);
+//       }
+
+//       // Store the files for preview
+//       setImages(selectedFiles);
+      
+//       // Update form data with image URLs
+//       setFormData(prev => ({
+//         ...prev,
+//         images: uploadedUrls
+//       }));
+
+//     } catch (err) {
+//       console.error("Erreur lors de l'upload des images:", err);
+//       const errMsg = err instanceof Error ? err.message : "Erreur inconnue lors de l'upload";
+//       setError(errMsg);
+//       alert(errMsg);
+//       // Clear the file input
+//       e.target.value = '';
+//       setImages([]);
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   // Get Clerk user object (contains clerk user id)
+//   const { user } = useUser();
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     setError(null);
+//     setIsSubmitting(true);
+
+//     // Build JSON payload (we'll pass Clerk id as route param)
+//     const payload = {
+//       titre: formData.titre,
+//       description: formData.description,
+//       prix: Number(formData.prix) || 0,
+//       ville: formData.ville,
+//       type: formData.type,
+//       surface: Number(formData.surface) || 0,
+//       chambres: Number(formData.chambres) || 0,
+//       douches: Number(formData.douches) || 0,
+//       images: formData.images || []
+//     };
+
+//     try {
+//       // Get the session token from Clerk
+//       const token = await getToken();
+
+//       if (!token) {
+//         throw new Error("Vous devez être connecté pour créer une annonce");
+//       }
+
+//       const clerkId = user?.id;
+//       if (!clerkId) throw new Error('Utilisateur Clerk introuvable, reconnectez-vous');
+
+//       const res = await fetch(`http://localhost:5000/annonces/${clerkId}`, {
+//         method: "POST",
+//         headers: {
+//           'Content-Type': 'application/json',
+//           'Authorization': `Bearer ${token}`
+//         },
+//         credentials: 'include',
+//         body: JSON.stringify(payload),
+//       });
+//       console.log("payload", payload);
+//       console.log("clerkId", clerkId);
+//       if (!res.ok) {
+//         // essaie d'extraire le message d'erreur renvoyé par le serveur
+//         const text = await res.text();
+//         throw new Error(text || `Erreur serveur (${res.status})`);
+//       }
+
+//       alert("Annonce publiée avec succès");
+//     } catch (err: unknown) {
+//       console.error("Erreur lors de l'envoi de l'annonce:", err);
+//       // Extraire le message de façon sûre depuis un unknown
+//       const errMsg =
+//         err instanceof Error ? err.message : typeof err === "string" ? err : "Erreur inconnue";
+//       setError(errMsg);
+//       alert(`Erreur : ${errMsg}`);
+//     } finally {
+//       setIsSubmitting(false);
+//     }
+//   };
+
+//   return (
+//     <div className="bg-white p-6 shadow-md rounded-lg max-w-xl mx-auto">
+//       <h1 className="text-2xl font-bold mb-6">
+//         Publier une annonce (AGENT)
+//       </h1>
+
+//       <form onSubmit={handleSubmit} className="space-y-4">
+//         {/* Titre */}
+//         <div>
+//           <label className="block text-gray-700 mb-1">Titre</label>
+//           <input
+//             type="text"
+//             name="titre"
+//             value={formData.titre}
+//             onChange={handleChange}
+//             className="w-full border px-3 py-2 rounded-md"
+//             required
+//           />
+//         </div>
+
+//         {/* Description */}
+//         <div>
+//           <label className="block text-gray-700 mb-1">Description</label>
+//           <textarea
+//             name="description"
+//             value={formData.description}
+//             onChange={handleChange}
+//             className="w-full border px-3 py-2 rounded-md"
+//             rows={4}
+//             required
+//           />
+//         </div>
+
+//         {/* Prix */}
+//         <div>
+//           <label className="block text-gray-700 mb-1">Prix (FCFA)</label>
+//           <input
+//             type="number"
+//             name="prix"
+//             value={formData.prix}
+//             onChange={handleChange}
+//             className="w-full border px-3 py-2 rounded-md"
+//             required
+//           />
+//         </div>
+
+//         {/*Ville*/}
+//         <div>
+//           <label className="block text-gray-700 mb-1">Ville</label>
+//           <input
+//             type="text"
+//             name="ville"
+//             value={formData.ville}
+//             onChange={handleChange}
+//             className="w-full border px-3 py-2 rounded-md"
+//             required
+//           />
+//         </div>
+
+
+//         {/* Type de bien */}
+//         <div>
+//           <label className="block text-gray-700 mb-1">Type de bien</label>
+//           <select
+//             name="type"
+//             value={formData.type}
+//             onChange={handleChange}
+//             className="w-full border px-3 py-2 rounded-md"
+//           >
+//             <option value="maison">Maison</option>
+//             <option value="appartement">Appartement</option>
+//             <option value="terrain">Terrain</option>
+//             <option value="chambre">Chambre</option>
+//             <option value="meublé">Meublé</option>
+//           </select>
+//         </div>
+
+//         {/* Surface*/}
+//         <div>
+//           <label className="block text-gray-700 mb-1">Surface</label>
+//           <input
+//             type="number"
+//             name="surface"
+//             value={formData.surface}
+//             onChange={handleChange}
+//             className="w-full border px-3 py-2 rounded-md"
+//             required
+//           />
+//         </div>
+
+//         {/* Chambre*/}
+//         <div>
+//           <label className="block text-gray-700 mb-1">Chambre</label>
+//           <input
+//             type="number"
+//             name="chambres"
+//             value={formData.chambres}
+//             onChange={handleChange}
+//             className="w-full border px-3 py-2 rounded-md"
+//             required
+//           />
+//         </div>
+
+//         {/* Douche*/}
+//         <div>
+//           <label className="block text-gray-700 mb-1">Douche</label>
+//           <input
+//             type="number"
+//             name="douches"
+//             value={formData.douches}
+//             onChange={handleChange}
+//             className="w-full border px-3 py-2 rounded-md"
+//             required
+//           />
+//         </div>
+
+//         {/* Upload Images */}
+//         <div>
+//           <label className="block text-gray-700 mb-1">Images du bien</label>
+//           <input
+//             type="file"
+//             multiple
+//             accept="image/*"
+//             onChange={handleImageChange}
+//             className="w-full border px-3 py-2 rounded-md"
+//           />
+//           {/* Aperçu des images */}
+//           {images.length > 0 && (
+//             <div className="mt-2 grid grid-cols-3 gap-2">
+//               {images.map((file, index) => (
+//                 <img
+//                   key={index}
+//                   src={URL.createObjectURL(file)}
+//                   alt={`preview-${index}`}
+//                   className="w-full h-24 object-cover rounded-md border"
+//                 />
+//               ))}
+//             </div>
+//           )}
+//         </div>
+
+//         {/* Bouton */}
+//         <button
+//           type="submit"
+//           className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-600 disabled:opacity-60"
+//           disabled={isSubmitting}
+//         >
+//           {isSubmitting ? "Publication…" : "Publier"}
+//         </button>
+//         {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+//       </form>
+//     </div>
+//   );
+// };
+
+// export default AnnonceForm;

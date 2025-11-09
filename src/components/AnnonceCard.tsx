@@ -7,6 +7,20 @@ import { Navigation, Pagination } from 'swiper/modules'
 import { t } from 'i18next'
 
 
+
+const API_BASE = 'http://localhost:5000'
+const toAbsoluteUrl = (u: string) => {
+  if (!u) return ''
+  // Keep absolute URLs and Vite asset URLs as-is
+  if (u.startsWith('http') || u.startsWith('/assets') || u.startsWith('data:')) return u
+  // Prefix backend upload paths
+  if (u.startsWith('/uploads')) return `${API_BASE}${u}`
+  if (u.startsWith('uploads')) return `${API_BASE}/${u}`
+  // Otherwise leave as-is
+  return u
+}
+
+
 // Type des props reçues par la carte
 type Props = {
   id: number
@@ -88,7 +102,7 @@ const handleLike = async () => {
           {images.map((img, index) => (
             <SwiperSlide key={index}>
               <img
-                src={img}
+                src={toAbsoluteUrl(img)}
                 alt={`${titre} - ${index + 1}`}
                 className="w-full h-full object-cover"
               />

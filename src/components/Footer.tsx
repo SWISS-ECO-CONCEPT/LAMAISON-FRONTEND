@@ -9,10 +9,9 @@ const year = new Date().getFullYear();
 
 const Footer: React.FC = () => {
     const { t, ready } = useTranslation();
+    const { lng } = useParams<{ lng: string }>();
 
     if (!ready) return null; // or a fallback/loading state
-
-    const { lng } = useParams<{ lng: string }>();
 
     return (
         <footer className="bg-gray-200 text-gray-800 mt-16">
