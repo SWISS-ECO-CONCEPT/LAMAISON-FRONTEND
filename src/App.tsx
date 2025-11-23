@@ -34,6 +34,7 @@ import ForgotPassword from './pages/Auth/ForgotPassword';
 import ResetPassword from './pages/Auth/ResetPassword';
 import Settings from './pages/Dashboard/Settings/settings';
 import VerificationCode from './pages/Auth/VerificationCode';
+import FavorisList from './components/DashboardComponents/FavorisList';
 // import DashboardProfile from '../src/components/DashboardComponents/DashboardProfile';
 
 function LocaleWrapper() {
@@ -115,6 +116,7 @@ function LocaleWrapper() {
           <Route path="prospect">
             <Route index element={<DashboardProspect />} />
             <Route path="home" element={<DashboardProspect />} />
+            <Route path="favoris" element={<FavorisList />} />
             <Route path="annonces" element={<AnnonceList />} />
             <Route path="profile" element={<Profile />} />
             <Route path="messages" element={<MessagesLayout />} />
