@@ -4,7 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import * as yup from 'yup'
 import { useFormik, type FormikHelpers } from 'formik';
 import { useSignIn, useSignUp } from '@clerk/clerk-react';
-import { FaGoogle } from 'react-icons/fa';
+import google from '../../assets/google.png'
 
 const schemaSignIn = yup.object().shape({
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -168,7 +168,7 @@ const Connexion = () => {
             onClick={() => handleLoginWithGoogle('oauth_google')}
             className="flex items-center gap-2 justify-center w-full border border-gray-300 py-2 rounded-lg hover:bg-gray-50 transition"
           >
-            <FaGoogle className='text-red-500 text-lg'/>
+            <img className='w-6 h-6' src={google} alt="google" />
           </button>
         </div>
 

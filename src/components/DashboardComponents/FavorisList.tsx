@@ -214,7 +214,7 @@ const FavorisList: React.FC = () => {
               <div className="flex gap-2 items-center">
                 <button
                   onClick={() => handleGoToAnnonce(fav.annonceId)}
-                  className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm"
+                  className="mt-4 inline-block w-full text-center bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition duration-300"
                 >
                   Voir l'annonce
                 </button>
