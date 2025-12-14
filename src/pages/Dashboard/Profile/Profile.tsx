@@ -1,6 +1,7 @@
 // src/pages/Dashboard/Profile/Profile.tsx
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react"; // Ajout du hook Clerk
+import { useTranslation } from "react-i18next"; // Import de useTranslation
 
 //  Définition du type UserProfile pour typer les données utilisateur
 type UserProfile = {
@@ -12,6 +13,7 @@ type UserProfile = {
 };
 
 const Profile = () => {
+  const { t } = useTranslation(); // Récupère la fonction de traduction
   const { user } = useUser(); // Récupère l'utilisateur Clerk
 
   // Initialisation avec Clerk
@@ -64,7 +66,7 @@ const Profile = () => {
     e.preventDefault();
     // Ici tu peux envoyer formData vers ton backend ou Clerk API
     console.log("Profil mis à jour :", formData);
-    alert("Profil mis à jour avec succès !");
+    alert(t('profile.updateSuccess'));
   };
 
   return (
@@ -77,7 +79,7 @@ const Profile = () => {
             //  Affichage de l’avatar si disponible
             <img
               src={preview}
-              alt="avatar"
+              alt={t('profile.fields.avatar')}
               className="h-24 w-24 rounded-full object-cover border-2 border-green-600"
             />
           ) : (
@@ -89,7 +91,7 @@ const Profile = () => {
           {/* Input caché pour uploader une image */}
           <label className="absolute bottom-0 right-0 bg-white border rounded-full p-1 cursor-pointer hover:bg-gray-100">
             <input type="file" className="hidden" accept="image/*" onChange={handleAvatarChange} />
-            <span className="text-xs text-green-600 font-semibold">📷</span>
+            <span className="text-xs text-green-600 font-semibold" title={t('profile.buttons.changeAvatar')}>📷</span>
           </label>
         </div>
 
@@ -99,7 +101,9 @@ const Profile = () => {
             {formData.firstname}
           </h1>
           <p className="text-gray-600">
-            {formData.role === "AGENT" ? "Agent Immobilier" : "Particulier"}
+            {formData.role === "AGENT" 
+              ? t('profile.role.agent') 
+              : t('profile.role.user')}
           </p>
           <p className="text-gray-500">{formData.email}</p>
         </div>
@@ -112,7 +116,9 @@ const Profile = () => {
       >
         {/* Nom */}
         <div>
-          <label className="block text-gray-700 mb-1">Nom</label>
+          <label className="block text-gray-700 mb-1">
+            {t('profile.fields.name')}
+          </label>
           <input
             type="text"
             name="firstname"
@@ -125,7 +131,9 @@ const Profile = () => {
 
         {/* Email */}
         <div>
-          <label className="block text-gray-700 mb-1">Email</label>
+          <label className="block text-gray-700 mb-1">
+            {t('profile.fields.email')}
+          </label>
           <input
             type="email"
             name="email"
@@ -139,7 +147,9 @@ const Profile = () => {
 
         {/* Téléphone */}
         <div>
-          <label className="block text-gray-700 mb-1">Téléphone</label>
+          <label className="block text-gray-700 mb-1">
+            {t('profile.fields.phone')}
+          </label>
           <input
             type="text"
             name="phone"
@@ -167,7 +177,7 @@ const Profile = () => {
             type="submit"
             className="bg-green-600 text-white px-6 py-2 rounded-md hover:bg-green-700 transition"
           >
-            Sauvegarder
+            {t('profile.buttons.save')}
           </button>
         </div>
       </form>

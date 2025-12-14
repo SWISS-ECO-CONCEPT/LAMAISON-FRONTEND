@@ -2,23 +2,32 @@ import { t } from 'i18next'
 import React, { useState } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
-import { format } from 'date-fns' // ✅ Import ajouté pour formater les dates
+import { format } from 'date-fns'
+import { useAuth, useUser } from '@clerk/clerk-react'
+import { toast } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 
 type RdvModalProps = {
   isOpen: boolean
   onClose: () => void
   proprietaireNom: string
+  proprietaireId: number
   proprietaireTel: string
-  datesSejour?: { startDate: Date | null, endDate: Date | null } // ✅ Déjà bien typé
+  annonceId: number
+  datesSejour?: { startDate: Date | null, endDate: Date | null }
 }
 
 const RdvModal: React.FC<RdvModalProps> = ({
   isOpen,
   onClose,
   proprietaireNom,
+  proprietaireId,
   proprietaireTel,
-  datesSejour, // ✅ Ajouté dans la destructuration
+  annonceId,
+  datesSejour,
 }) => {
+  const { getToken } = useAuth()
+  const { user} = useUser()
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
   const [email, setEmail] = useState('')
@@ -26,13 +35,73 @@ const RdvModal: React.FC<RdvModalProps> = ({
   const [date, setDate] = useState<Date | null>(null)
   const [heure, setHeure] = useState<Date | null>(null)
   const [message, setMessage] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   if (!isOpen) return null
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    alert(`RDV envoyé à ${proprietaireNom} (${proprietaireTel}) !`)
-    onClose()
+    
+    if (!date || !heure) {
+      toast.error('Veuillez sélectionner une date et une heure')
+      return
+    }
+
+    // Combiner la date et l'heure
+    const dateTime = new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      date.getDate(),
+      heure.getHours(),
+      heure.getMinutes()
+    )
+
+    setIsLoading(true)
+
+    try {
+      const token = await getToken()
+      if (!token) {
+        throw new Error('Non authentifié')
+      }
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+
+      const response = await fetch(`${API_URL}/rdvs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          date: dateTime.toISOString(),
+          prospectClerkId: user?.id,
+          annonceId: annonceId, 
+          message,
+          nom,
+          prenom,
+          email,
+          telephone: tel,
+          proprietaireId: proprietaireId
+        })
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.message || `Erreur lors de l'envoie du RDV`)
+      }
+
+      await response.json()
+      
+      toast.success('Demande de RDV envoyée avec succès !')
+      onClose()
+      
+      // Afficher les coordonnées du propriétaire
+      toast.info(`Contactez le propriétaire au ${proprietaireTel} pour confirmer le RDV.`)
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi du RDV:', error)
+      toast.error(error instanceof Error ? error.message : 'Une erreur est survenue')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -128,12 +197,13 @@ const RdvModal: React.FC<RdvModalProps> = ({
             className="border p-2 rounded w-full"
             rows={4}
           />
-
+        
           <button
             type="submit"
-            className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"
+            disabled={isLoading}
+            className={`w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {t('rdvModal.envy')}
+            {isLoading ? 'Envoi en cours...' : t('rdvModal.envy')}
           </button>
         </form>
       </div>

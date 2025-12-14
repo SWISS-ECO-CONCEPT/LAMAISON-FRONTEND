@@ -61,7 +61,15 @@
         "tteA": "All our listings"
     },
     "ownerCard": {
-        "RDV": "📅 Book an appointment"
+        "RDV": "📅 Book an appointment",
+        "agent": "Real Estate Agent",
+        "prospect": "Private individual"
+    },
+    "dashboard": {
+        "agentWelcome": "Welcome Agent",
+        "agentSubtitle": "Manage your listings, appointments and contacts.",
+        "prospectWelcome": "Welcome Prospect",
+        "prospectSubtitle": "Manage your favorites, appointments and personal information."
     },
     "rdvModal": {
         "pdrRDV": "Book an appointment with",
@@ -103,7 +111,8 @@
         "seConn": "Sign in",
         "pasCompte": "Don't have an account ?",
         "clique": "Click here",
-        "mdpOublie": "Password forgotten ?"
+        "mdpOublie": "Password forgotten ?",
+        "loginWithGoogle": "Sign in with Google"
     },
     "inscription": {
         "cree": "Create an account",
@@ -152,7 +161,93 @@
         "body1": "Hosting Provider: [Name of hosting provider], located at [address]."
     },
     "logo": {
-        "title": "back to homepage"
+        "title": "Back to LAMAISON homepage"
+    },
+    "settings": {
+        "title": "Settings",
+        "sections": {
+            "security": "Security",
+            "language": "Language",
+            "notifications": "Notifications",
+            "role": "Role"
+        },
+        "password": {
+            "current": "Current password",
+            "new": "New password",
+            "confirm": "Confirm password",
+            "updateButton": "Update",
+            "success": "Password updated successfully!",
+            "mismatch": "Passwords do not match!"
+        },
+        "role": {
+            "current": "Current role",
+            "prospect": "Private Individual",
+            "agent": "Real Estate Agent",
+            "description": "Changing your role will allow you to access different features.",
+            "updateButton": "Update Role",
+            "updating": "Updating...",
+            "success": "Role updated successfully! Redirecting..."
+        },
+        "languageOptions": {
+            "fr": "French",
+            "en": "English"
+        },
+        "notifications": {
+            "email": "Receive email notifications",
+            "push": "Receive push notifications"
+        }
+    },
+    "profile": {
+        "title": "Profile",
+        "updateSuccess": "Profile updated successfully!",
+        "role": {
+            "agent": "Real Estate Agent",
+            "user": "User"
+        },
+        "fields": {
+            "name": "Name",
+            "email": "Email",
+            "phone": "Phone",
+            "avatar": "Profile Picture"
+        },
+        "buttons": {
+            "save": "Save",
+            "changeAvatar": "Change photo"
+        }
+    },
+    "annonceForm": {
+        "title": "Publish a listing (AGENT)",
+        "fields": {
+            "titre": "Title",
+            "description": "Description",
+            "prix": "Price (FCFA)",
+            "ville": "City",
+            "type": "Property type",
+            "typeOptions": {
+                "maison": "House",
+                "appartement": "Apartment",
+                "terrain": "Land",
+                "chambre": "Room",
+                "meublé": "Furnished"
+            },
+            "surface": "Area",
+            "chambres": "Bedrooms",
+            "douches": "Bathrooms",
+            "images": "Property images (multiple allowed)",
+            "uploadedImages": "Uploaded images:"
+        },
+        "buttons": {
+            "publish": "Publish",
+            "publishing": "Publishing...",
+            "uploading": "Uploading..."
+        },
+        "errors": {
+            "loginRequired": "You must be logged in to create a listing",
+            "userNotFound": "User not found (Clerk)",
+            "uploadError": "Error uploading images: {error}",
+            "serverError": "Server error ({status})",
+            "publishSuccess": "Listing published successfully!"
+        }
     },
     "dateseJourPicker": {
         "duree": "📆 Choose the date of stay",
@@ -173,12 +268,141 @@
         "nouveau": "New password",
         "confirm": "Confirm password",
         "placeholder": "Enter a new password",
-        "placeholderConfirm": "Confirm your new password",
+        "placeholderConfirm": "Confirm your password",
         "bouton": "Reset",
         "chargement": "Resetting...",
-        "succes": "Password successfully updated",
+        "succes": " Password updated successfully",
         "erreurMismatch": " Passwords do not match",
-        "erreurServeur": "Server error",
+        "erreurServeur": " Server error",
         "erreurReseau": " A network error occurred"
+    },
+    "favoris": {
+        "title": "My Favorites",
+        "loginRequired": "Please log in to view your favorites.",
+        "noFavorites": "No favorites yet"
+    },
+    "common": {
+        "loading": "Loading...",
+        "error": "Error"
+    },
+    "header": {
+        "backToSite": "Back to site",
+        "myAccount": "My Account",
+        "logout": "Logout"
+    },
+    "sidebar": {
+        "dashboard": "Dashboard",
+        "myListings": "My Listings",
+        "publishAd": "Publish an Ad",
+        "messaging": "Messaging",
+        "appointments": "Appointments",
+        "profile": "Profile",
+        "settings": "Settings",
+        "myFavorites": "My Favorites"
+    },
+    "rdvProspect": {
+    "title": "My Appointments",
+    "note": "To book an appointment, check the listings and click on the \"Book Appointment\" button.",
+    "chooseDate": "Choose a date:",
+    "confirmButton": "➕ Confirm this Appointment",
+    "selectDateAlert": "Please select a date!",
+    "defaultAppointment": {
+      "time": "2:00 PM",
+      "property": "Property to be determined",
+      "agent": "Agent to be determined"
     }
+  },
+  "rdvAgent": {
+    "title": "📅 Appointments with prospects",
+    "noAppointments": "No appointments scheduled",
+    "appointments": {
+      "pending": "Pending confirmation",
+      "confirmed": "Confirmed",
+      "rejected": "Rejected"
+    }
+  },
+  "rdvCard": {
+    "prospect": "Prospect",
+    "agent": "Agent",
+    "status": {
+      "pending": "pending",
+      "confirmed": "confirmed",
+      "rejected": "rejected"
+    },
+    "actions": {
+        "confirm": "Confirm",
+        "reject": "Reject",
+        "atTime": "at"
+    }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "new": "New",
+    "clearAll": "Clear all",
+    "rdvRequest": "New appointment request",
+    "rdvResponse": "Response to your appointment",
+    "rdvAccepted": "Your appointment has been accepted",
+    "rdvRejected": "Your appointment has been rejected"
+  },
+  "Nouvelle demande de RDV de": "New appointment request from",
+  "pour": "for",
+"annonceList": {
+    "myListingsTitle": "My Published Listings",
+    "loading": "Loading…",
+    "editPlaceholders": {
+        "title": "Title",
+        "description": "Description",
+        "price": "Price (FCFA)",
+        "city": "City",
+        "type": "Property Type",
+        "surface": "Surface (m²)",
+        "bedrooms": "Number of Bedrooms",
+        "showers": "Number of Showers"
+    },
+    "actions": {
+        "save": "Save",
+        "cancel": "Cancel",
+        "edit": "Edit",
+        "delete": "Delete",
+        "deleteConfirm": "Delete this listing?"
+    },
+    "errors": {
+        "authRequired": "Authentication required",
+        "updateError": "Error updating listing",
+        "deleteError": "Error deleting listing"
+    }
+},
+"messages": {
+    "chat": {
+        "backButton": "Back",
+        "conversation": "Conversation",
+        "typeMessage": "Type a message...",
+        "you": "You"
+    },
+    "conversations": {
+        "title": "Conversations",
+        "noConversations": "No conversations",
+        "newMessage": "New message",
+        "conversationWith": "Conversation with"
+    },
+    "status": {
+        "online": "Online",
+        "offline": "Offline",
+        "typing": "is typing..."
+    },
+    "actions": {
+        "send": "Send",
+        "sendMessage": "Send message"
+    },
+    "mockData": {
+        "agent1": "Dupont Agency",
+        "agent2": "Prospect Martin",
+        "admin": "Admin",
+        "message1": "Hello, are you interested in this listing?",
+        "message2": "Thank you for the visit!",
+        "message3": "Reminder: your listings will expire soon",
+        "message4": "Yes, could you give me more details?"
+    }
+}
 }

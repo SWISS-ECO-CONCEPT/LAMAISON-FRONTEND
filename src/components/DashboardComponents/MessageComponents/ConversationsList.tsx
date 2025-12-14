@@ -1,35 +1,58 @@
 import React from "react"
+import { useTranslation } from "react-i18next"
 
 type Props = {
   onSelectConversation: (id: number) => void
 }
 
-const mockConversations = [
-  { id: 1, name: "Agence Dupont", lastMessage: "Bonjour, intéressé par l’annonce ?" },
-  { id: 2, name: "Prospect Martin", lastMessage: "Merci pour la visite !" },
-  { id: 3, name: "Admin", lastMessage: "Rappel: vos annonces expirent bientôt" },
-]
-
 const ConversationsList: React.FC<Props> = ({ onSelectConversation }) => {
+  const { t } = useTranslation()
+  
+  const mockConversations = [
+    { 
+      id: 1, 
+      name: t('messages.mockData.agent1', 'Agence Dupont'), 
+      lastMessage: t('messages.mockData.message1', 'Bonjour, intéressé par l\'annonce ?') 
+    },
+    { 
+      id: 2, 
+      name: t('messages.mockData.agent2', 'Prospect Martin'), 
+      lastMessage: t('messages.mockData.message2', 'Merci pour la visite !') 
+    },
+    { 
+      id: 3, 
+      name: t('messages.mockData.admin', 'Admin'), 
+      lastMessage: t('messages.mockData.message3', 'Rappel: vos annonces expirent bientôt') 
+    },
+  ]
+
   return (
     <div className="w-full h-full overflow-y-auto bg-white">
-      <h2 className="text-lg font-semibold p-4 border-b">Conversations</h2>
-      {mockConversations.map((conv) => (
-        <div
-          key={conv.id}
-          onClick={() => onSelectConversation(conv.id)}
-          className="p-4 border-b hover:bg-gray-100 cursor-pointer"
-        >
-          <p className="font-medium">{conv.name}</p>
-          <p className="text-sm text-gray-500 truncate">{conv.lastMessage}</p>
-        </div>
-      ))}
+      <h2 className="text-lg font-semibold p-4 border-b">
+        {t('messages.conversations.title', 'Conversations')}
+      </h2>
+      {mockConversations.length === 0 ? (
+        <p className="p-4 text-gray-500">
+          {t('messages.conversations.noConversations', 'Aucune conversation')}
+        </p>
+      ) : (
+        mockConversations.map((conv) => (
+          <div
+            key={conv.id}
+            onClick={() => onSelectConversation(conv.id)}
+            className="p-4 border-b hover:bg-gray-50 cursor-pointer"
+            aria-label={`${t('messages.conversations.conversationWith', 'Conversation avec')} ${conv.name}`}
+          >
+            <p className="font-medium">{conv.name}</p>
+            <p className="text-sm text-gray-500 truncate">{conv.lastMessage}</p>
+          </div>
+        ))
+      )}
     </div>
   )
 }
 
 export default ConversationsList
-
 
 // import React from "react"
 // import { Link } from "react-router-dom"

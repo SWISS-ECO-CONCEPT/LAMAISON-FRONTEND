@@ -1,10 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { FaMapMarkerAlt, FaBed, FaShower, FaRulerCombined, FaHeart, FaRegHeart } from 'react-icons/fa'
 import { Link, useParams } from 'react-router-dom'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 import { t } from 'i18next'
+import { useAuth, useUser } from '@clerk/clerk-react'
 
 
 
@@ -20,6 +21,12 @@ const toAbsoluteUrl = (u: string) => {
   return u
 }
 
+interface FavoriResponse {
+  id: number;
+  annonceId: number;
+  userId: number;
+  createdAt: Date;
+}
 
 // Type des props reçues par la carte
 type Props = {
@@ -44,37 +51,100 @@ const AnnonceCard: React.FC<Props> = ({
   surface,
 }) => {
   const { lng } = useParams<{ lng: string }>();
-  const [isAuthenticated] = useState(false); // Placeholder, replace with actual auth state
-  const [token] = useState<string | null>(null); // Placeholder, replace with actual token
-   const [liked, setLiked] = useState(false)
+  const { isSignedIn, getToken } = useAuth()
+  const [liked, setLiked] = useState(false)
+  const { user } = useUser();
 
-const navigate = useNavigate()
+  const navigate = useNavigate()
 
-const handleLike = async () => {
-  if (!isAuthenticated) {
-    navigate(`/${lng}/signup`) 
-    return
-  }
-
-  try {
-    const response = await fetch('http://localhost:5000/favoris', {
-      method: liked ? 'DELETE' : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ annonceId: id }),
-    })
-
-    if (response.ok) {
-      setLiked(!liked)
-    } else {
-      console.error('Erreur API:', await response.json())
+  useEffect(() => {
+      const run = async () => {        
+      try {
+      const token = await getToken()
+      if (!token) {
+        return
+      }
+      const clerkId = user?.id;
+        if (!clerkId) throw new Error("Utilisateur introuvable (Clerk)");
+        const res = await fetch(`${API_BASE}/favoris/${clerkId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+        });
+        
+        // Gérer le cas où l'annonce n'existe plus (404, 410)
+        if (res.status === 404 || res.status === 410) {
+          console.warn(`Annonce ${id} n'existe plus ou favoris inaccessibles`);
+          setLiked(false);
+          return;
+        }
+        
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `Erreur serveur (${res.status})`);
+        }
+        const data = await res.json()
+        const likedAnnonce = data.find((a: FavoriResponse) => a.annonceId === id)
+        setLiked(!!likedAnnonce)
+    } catch (error) {
+      console.error('Erreur réseau favoris:', error)
+      // Ne pas afficher d'alerte en cas d'erreur réseau mineure
+      setLiked(false)
     }
-  } catch (error) {
-    console.error('Erreur réseau:', error)
+    }
+    run()
+  }, [getToken, user?.id, id])
+
+  const handleLike = async () => {
+    if (!isSignedIn) {
+      navigate(`/${lng}/signup`)
+      return
+    }
+
+    try {
+      const token = await getToken()
+      if (!token) {
+        navigate(`/${lng}/signup`)
+        return
+      }
+      const clerkId = user?.id;
+        if (!clerkId) throw new Error("Utilisateur introuvable (Clerk)");
+
+      const url = liked
+        ? `${API_BASE}/favoris/${id}/${clerkId}`
+        : `${API_BASE}/favoris/${clerkId}`
+
+      const response = await fetch(url, {
+        method: liked ? 'DELETE' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`, 
+        },
+        body: liked ? undefined : JSON.stringify({ annonceId: id }),
+      })
+
+      // Gérer le cas où l'annonce n'existe plus
+      if (response.status === 404 || response.status === 410) {
+        console.warn(`Annonce ${id} n'existe plus - suppression des favoris`);
+        setLiked(false);
+        return;
+      }
+
+      if (response.ok) {
+        const nowLiked = !liked
+        setLiked(nowLiked)
+      } else {
+        const text = await response.text()
+        console.error('Erreur API favoris:', text)
+        // Gérer les erreurs silencieusement sans alerte
+        console.warn('Erreur lors de la mise à jour des favoris, annonce peut avoir été supprimée')
+      }
+    } catch (error) {
+      console.error('Erreur réseau handleLike:', error)
+      // Gestion silencieuse des erreurs réseau
+    }
   }
-}
 
   return (
     <div className="flex flex-col bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden transition duration-300 hover:shadow-xl hover:scale-[1.015] h-full">

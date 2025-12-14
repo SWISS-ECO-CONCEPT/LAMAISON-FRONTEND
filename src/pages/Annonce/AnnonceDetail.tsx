@@ -27,6 +27,7 @@ type Annonce = {
   douches?: number | null
   images: string[]
   proprietaire?: {
+    id: number
     firstname: string
     role: 'AGENT' | 'PROSPECT'
     phone?: string | null
@@ -171,9 +172,9 @@ const AnnonceDetail: React.FC = () => {
               <h3 className="text-lg font-semibold text-gray-800 mb-3">{t('annonceDetail.aper')}</h3>
               <p className="text-sm text-gray-700 leading-relaxed">
                 {a.description}
-                <span className="block mt-2 font-medium text-green-700">
+                {/* <span className="block mt-2 font-medium text-green-700">
                   Prix : {a?.prix?.toLocaleString()} FCFA
-                </span>
+                </span> */}
               </p>
             </div>
           </div>
@@ -199,6 +200,8 @@ const AnnonceDetail: React.FC = () => {
         onClose={() => setShowRdv(false)}
         proprietaireNom={proprietaire.nom}
         proprietaireTel={proprietaire.tel}
+         proprietaireId={a?.proprietaire?.id || 0}
+         annonceId={a?.id || 0}
         datesSejour={datesSejour}
       />
     </div>
