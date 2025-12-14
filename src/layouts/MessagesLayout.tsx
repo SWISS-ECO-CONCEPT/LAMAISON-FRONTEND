@@ -1,9 +1,22 @@
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
+import { useLocation } from "react-router-dom"
 import ConversationsList from "../components/DashboardComponents/MessageComponents/ConversationsList"
 import ChatWindow from "../components/DashboardComponents/MessageComponents/ChatWindow"
 
 const MessagesLayout: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null)
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const otherUserId = params.get('otherUserId');
+    if (otherUserId) {
+      const parsed = Number(otherUserId);
+      if (!Number.isNaN(parsed)) {
+        setSelectedConversation(parsed);
+      }
+    }
+  }, [location.search]);
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-gray-50">

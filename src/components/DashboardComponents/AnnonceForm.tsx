@@ -1,6 +1,7 @@
 // AnnonceForm.tsx
 import React, { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
+import { useTranslation } from 'react-i18next';
 
 type FormObject = {
   titre: string;
@@ -19,6 +20,7 @@ const API_BASE = "http://localhost:5000";
 const AnnonceForm: React.FC = () => {
   const { getToken } = useAuth();
   const { user } = useUser();
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState<FormObject>({
     titre: "",
@@ -78,7 +80,7 @@ const AnnonceForm: React.FC = () => {
 
     try {
       const token = await getToken();
-      if (!token) throw new Error("Vous devez être connecté pour uploader des images.");
+      if (!token) throw new Error(t('annonceForm.errors.loginRequired'));
 
       // Upload en parallèle (Promise.all). Chaque requête envoie le champ 'file' car multer est configuré en upload.single("file")
       const uploadPromises = files.map(async (file) => {
@@ -115,7 +117,7 @@ const AnnonceForm: React.FC = () => {
         if (!url) {
           // si ton backend renvoie un objet différent, log pour debug
           console.warn("Réponse inattendue lors de l'upload image:", data);
-          throw new Error(`Upload réussi mais impossible d'extraire l'URL pour ${file.name}`);
+          throw new Error(t('annonceForm.errors.uploadError', { error: `Could not extract URL for ${file.name}` }));
         }
 
         return url;
@@ -143,7 +145,7 @@ const AnnonceForm: React.FC = () => {
           // met à jour le formData afin que l'aperçu côté UI reflète les URLs uploadées
           setFormData((prev) => ({ ...prev, images: imageUrls }));
         } catch (imgErr) {
-          throw new Error(`Erreur lors de l'upload des images : ${(imgErr as Error).message}`);
+          throw new Error(t('annonceForm.errors.uploadError', { error: (imgErr as Error).message }));
         }
       }
 
@@ -162,10 +164,10 @@ const AnnonceForm: React.FC = () => {
 
       // 3) récupérer token et clerkId
       const token = await getToken();
-      if (!token) throw new Error("Vous devez être connecté pour créer une annonce");
+      if (!token) throw new Error(t('annonceForm.errors.loginRequired'));
 
       const clerkId = user?.id;
-      if (!clerkId) throw new Error("Utilisateur introuvable (Clerk)");
+      if (!clerkId) throw new Error(t('annonceForm.errors.userNotFound'));
 
       // 4) envoi de l'annonce
       const res = await fetch(`${API_BASE}/annonces/${clerkId}`, {
@@ -185,7 +187,7 @@ const AnnonceForm: React.FC = () => {
       }
 
       // succès
-      alert("Annonce publiée avec succès !");
+      alert(t('annonceForm.errors.publishSuccess'));
       // reset simple du formulaire (optionnel : tu peux aussi rediriger)
       setFormData({
         titre: "",
@@ -211,12 +213,12 @@ const AnnonceForm: React.FC = () => {
 
   return (
     <div className="bg-white p-6 shadow-md rounded-lg max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-6">Publier une annonce (AGENT)</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('annonceForm.title')}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Titre */}
         <div>
-          <label className="block text-gray-700 mb-1">Titre</label>
+          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.titre')}</label>
           <input
             type="text"
             name="titre"
@@ -229,7 +231,7 @@ const AnnonceForm: React.FC = () => {
 
         {/* Description */}
         <div>
-          <label className="block text-gray-700 mb-1">Description</label>
+          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.description')}</label>
           <textarea
             name="description"
             value={formData.description}
@@ -242,7 +244,7 @@ const AnnonceForm: React.FC = () => {
 
         {/* Prix */}
         <div>
-          <label className="block text-gray-700 mb-1">Prix (FCFA)</label>
+          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.prix')}</label>
           <input
             type="number"
             name="prix"
@@ -255,7 +257,7 @@ const AnnonceForm: React.FC = () => {
 
         {/* Ville */}
         <div>
-          <label className="block text-gray-700 mb-1">Ville</label>
+          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.ville')}</label>
           <input
             type="text"
             name="ville"
@@ -268,18 +270,18 @@ const AnnonceForm: React.FC = () => {
 
         {/* Type */}
         <div>
-          <label className="block text-gray-700 mb-1">Type de bien</label>
+          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.type')}</label>
           <select
             name="type"
             value={formData.type}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-md"
           >
-            <option value="maison">Maison</option>
-            <option value="appartement">Appartement</option>
-            <option value="terrain">Terrain</option>
-            <option value="chambre">Chambre</option>
-            <option value="meublé">Meublé</option>
+            {Object.entries(t('annonceForm.fields.typeOptions', { returnObjects: true }) as Record<string, string>).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -298,33 +300,33 @@ const AnnonceForm: React.FC = () => {
 
         {/* Chambres */}
         <div>
-          <label className="block text-gray-700 mb-1">Chambres</label>
+          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.chambres')}</label>
           <input
             type="number"
             name="chambres"
             value={formData.chambres}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-md"
-            required
+            
           />
         </div>
 
         {/* Douches */}
         <div>
-          <label className="block text-gray-700 mb-1">Douches</label>
+          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.douches')}</label>
           <input
             type="number"
             name="douches"
             value={formData.douches}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-md"
-            required
+            
           />
         </div>
 
         {/* Upload images (choix) */}
         <div>
-          <label className="block text-gray-700 mb-1">Images du bien (plusieurs possibles)</label>
+          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.images')}</label>
           <input
             type="file"
             multiple
@@ -350,7 +352,7 @@ const AnnonceForm: React.FC = () => {
           {/* Aperçu des URLs uploadées (si déjà uploadées) */}
           {formData.images && formData.images.length > 0 && (
             <div className="mt-2">
-              <p className="text-sm text-gray-600">Images uploadées :</p>
+              <p className="text-sm text-gray-600">{t('annonceForm.fields.uploadedImages')}</p>
               <div className="mt-1 grid grid-cols-3 gap-2">
                 {formData.images.map((url, idx) => (
                   <img key={idx} src={url} alt={`uploaded-${idx}`} className="w-full h-24 object-cover rounded-md border" />
@@ -371,10 +373,10 @@ const AnnonceForm: React.FC = () => {
               <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
               </svg>
-              <span>{isSubmitting ? "Publication…" : "Upload en cours…"}</span>
+              <span>{isSubmitting ? t('annonceForm.buttons.publishing') : t('annonceForm.buttons.uploading')}</span>
             </>
           ) : (
-            "Publier"
+            t('annonceForm.buttons.publish')
           )}
         </button>
 

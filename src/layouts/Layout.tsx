@@ -15,19 +15,20 @@ import { useUser } from '@clerk/clerk-react';
 // const Layout: React.FC<PageProps> = ({ children }: PageProps) => {
 
 const Layout: React.FC = () => {
-    const { user }: any = useUser();
+    const { user } = useUser();
     // const { lng } = useParams<{ lng: string }>();
     console.log(user)
     // if (user) return <Navigate to={`/${lng}/Dashboard`} />
     return (
         <>
-
+            <div className='flex flex-col min-h-screen'>
             <Navbar />
             <main className='flex-grow'>
                 {/* {children} */}
                  <Outlet /> {/*C’est ici que les pages (Home, Annonces, etc.) vont s’afficher */}
             </main>
-            <Footer />
+            <Footer/>
+            </div>
         </>
     )
 }

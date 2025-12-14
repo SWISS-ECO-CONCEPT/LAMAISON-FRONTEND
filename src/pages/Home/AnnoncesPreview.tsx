@@ -49,7 +49,7 @@ const AnnoncesPreview: React.FC = () => {
     <section className="py-8 px-4">
       <h2 className="text-2xl font-semibold mb-6 text-center">{t('annoncepreview.recent')}</h2>
 
-      {loading && <p className="text-center text-gray-600">Chargement…</p>}
+      {loading && <p className="text-center text-gray-600">{t('common.loading')}</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
       {/* Grille responsive : 1 colonne sur mobile, 2 sur petits écrans, 3 sur grands */}

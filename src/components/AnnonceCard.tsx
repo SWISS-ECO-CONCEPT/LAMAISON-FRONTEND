@@ -72,6 +72,14 @@ const AnnonceCard: React.FC<Props> = ({
           },
           credentials: "include",
         });
+        
+        // Gérer le cas où l'annonce n'existe plus (404, 410)
+        if (res.status === 404 || res.status === 410) {
+          console.warn(`Annonce ${id} n'existe plus ou favoris inaccessibles`);
+          setLiked(false);
+          return;
+        }
+        
         if (!res.ok) {
           const text = await res.text();
           throw new Error(text || `Erreur serveur (${res.status})`);
@@ -80,8 +88,9 @@ const AnnonceCard: React.FC<Props> = ({
         const likedAnnonce = data.find((a: FavoriResponse) => a.annonceId === id)
         setLiked(!!likedAnnonce)
     } catch (error) {
-      console.error('Erreur réseau:', error)
-      alert('Erreur réseau lors de la mise à jour des favoris.')
+      console.error('Erreur réseau favoris:', error)
+      // Ne pas afficher d'alerte en cas d'erreur réseau mineure
+      setLiked(false)
     }
     }
     run()
@@ -115,22 +124,25 @@ const AnnonceCard: React.FC<Props> = ({
         body: liked ? undefined : JSON.stringify({ annonceId: id }),
       })
 
+      // Gérer le cas où l'annonce n'existe plus
+      if (response.status === 404 || response.status === 410) {
+        console.warn(`Annonce ${id} n'existe plus - suppression des favoris`);
+        setLiked(false);
+        return;
+      }
+
       if (response.ok) {
         const nowLiked = !liked
         setLiked(nowLiked)
-        // if (nowLiked) {
-        //   alert('Post ajouté à votre liste de favoris.')
-        // } else {
-        //   alert('Post retiré de votre liste de favoris.')
-        // }
       } else {
         const text = await response.text()
-        console.error('Erreur API:', text)
-        alert(text || 'Erreur lors de la mise à jour des favoris.')
+        console.error('Erreur API favoris:', text)
+        // Gérer les erreurs silencieusement sans alerte
+        console.warn('Erreur lors de la mise à jour des favoris, annonce peut avoir été supprimée')
       }
     } catch (error) {
-      console.error('Erreur réseau:', error)
-      alert('Erreur réseau lors de la mise à jour des favoris.')
+      console.error('Erreur réseau handleLike:', error)
+      // Gestion silencieuse des erreurs réseau
     }
   }
 

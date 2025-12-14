@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.47.0",
+    "@emoji-mart/data": "^1.2.1",
+    "@emoji-mart/react": "^1.1.1",
     "@tailwindcss/vite": "^4.1.8",
     "date-fns": "^4.1.0",
     "formik": "^2.4.6",
@@ -28,6 +30,7 @@
     "react-router-dom": "^7.6.3",
     "react-toastify": "^11.0.5",
     "react-world-flags": "^1.6.0",
+    "socket.io-client": "^4.7.2",
     "swiper": "^11.2.10",
     "yup": "^1.7.1"
   },

@@ -116,7 +116,7 @@ const Inscription = () => {
         {/* Prénom */}
         <div>
           <label htmlFor="firstname" className="block text-sm font-medium text-gray-700 mb-1">
-            {t("rdvModal.prenom")}
+            {t("rdvModal.prenom")} <span className="text-gray-400">*</span>
           </label>
           <input
             id="firstname"
@@ -136,7 +136,7 @@ const Inscription = () => {
         {/* Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-            Email
+            Email <span className="text-gray-400">*</span>
           </label>
           <input
             id="email"
@@ -156,7 +156,7 @@ const Inscription = () => {
         {/* Mot de passe */}
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-            {t("connexion.mdp")}
+            {t("connexion.mdp")} <span className="text-gray-400">*</span>
           </label>
           <input
             id="password"
@@ -176,7 +176,7 @@ const Inscription = () => {
         {/* Rôle */}
         <div>
           <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-            {t("inscription.jeSuis")}
+            {t("inscription.jeSuis")} <span className="text-gray-400">*</span>
           </label>
           <select
             id="role"

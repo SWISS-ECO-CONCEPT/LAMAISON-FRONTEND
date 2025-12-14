@@ -53,7 +53,7 @@ const Annonces: React.FC = () => {
                 <SearchBar />
             </div>
 
-            {loading && <p className="text-center text-gray-600">Chargement…</p>}
+            {loading && <p className="text-center text-gray-600">{t('common.loading')}</p>}
             {error && <p className="text-center text-red-500">{error}</p>}
             {!loading && !error && (
                 <div className="grid gap-6 md:grid-cols-3">

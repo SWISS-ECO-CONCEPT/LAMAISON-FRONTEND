@@ -45,13 +45,27 @@ const Contact = () => {
     // Optionnel : envoi vers backend ou API email
 
      setErrors({}) // reset des erreurs
-    } catch (err: any) {
+    } catch (err) {
       // Si Yup renvoie des erreurs, on les mappe dans notre state errors
       const newErrors: Partial<ContactForm> = {}
-      err.inner.forEach((e: any) => {
-        newErrors[e.path as keyof ContactForm] = e.message
-      })
-      console.log(newErrors)
+      
+      if (err && typeof err === 'object' && 'inner' in err) {
+        const yupError = err as {
+          inner: Array<{
+            path: string
+            message: string
+          }>
+        }
+        
+        yupError.inner.forEach((e) => {
+          if (e.path in form) {
+            newErrors[e.path as keyof ContactForm] = e.message
+          }
+        })
+      } else {
+        console.error('Erreur de validation inattendue:', err)
+      }
+      
       setErrors(newErrors)
     }
   }
@@ -64,7 +78,7 @@ const Contact = () => {
         
         <div>
           <label htmlFor="nom" className="block text-sm font-medium mb-1">
-            {t('rdvModal.nom')}
+            {t('rdvModal.nom')} <span className="text-gray-400">*</span>
           </label>
           <input
             type="text"
@@ -80,7 +94,7 @@ const Contact = () => {
 
         <div>
           <label htmlFor="email" className="block text-sm font-medium mb-1">
-            Email
+            Email <span className="text-gray-400">*</span>
           </label>
           <input
             type="email"
@@ -96,7 +110,7 @@ const Contact = () => {
 
         <div>
           <label htmlFor="message" className="block text-sm font-medium mb-1">
-            Message
+            Message <span className="text-gray-400">*</span>
           </label>
           <textarea
             name="message"

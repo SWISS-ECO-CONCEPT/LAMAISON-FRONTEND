@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import DatePicker from 'react-datepicker'
 import 'react-datepicker/dist/react-datepicker.css'
 import { format } from 'date-fns'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth, useUser } from '@clerk/clerk-react'
 import { toast } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
@@ -27,6 +27,7 @@ const RdvModal: React.FC<RdvModalProps> = ({
   datesSejour,
 }) => {
   const { getToken } = useAuth()
+  const { user} = useUser()
   const [nom, setNom] = useState('')
   const [prenom, setPrenom] = useState('')
   const [email, setEmail] = useState('')
@@ -62,8 +63,9 @@ const RdvModal: React.FC<RdvModalProps> = ({
       if (!token) {
         throw new Error('Non authentifié')
       }
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 
-      const response = await fetch(`${'http://localhost:5000'}/api/rdvs`, {
+      const response = await fetch(`${API_URL}/rdvs`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -71,8 +73,8 @@ const RdvModal: React.FC<RdvModalProps> = ({
         },
         body: JSON.stringify({
           date: dateTime.toISOString(),
-          prospectId: 1, // À remplacer par l'ID de l'utilisateur connecté
-          annonceId: annonceId,
+          prospectClerkId: user?.id,
+          annonceId: annonceId, 
           message,
           nom,
           prenom,
@@ -84,7 +86,7 @@ const RdvModal: React.FC<RdvModalProps> = ({
 
       if (!response.ok) {
         const error = await response.json()
-        throw new Error(error.message || 'Erreur lors de l\'envoi du RDV')
+        throw new Error(error.message || `Erreur lors de l'envoie du RDV`)
       }
 
       await response.json()
@@ -195,7 +197,7 @@ const RdvModal: React.FC<RdvModalProps> = ({
             className="border p-2 rounded w-full"
             rows={4}
           />
-
+        
           <button
             type="submit"
             disabled={isLoading}

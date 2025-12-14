@@ -1,5 +1,5 @@
-import { Link } from "react-router-dom";
-// import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import logo from "../../assets/logo.jpg";
 import { Menu, Home, FilePlus, List, User, Heart, MessageCircleIcon, Calendar, Settings } from "lucide-react";
 import { useUser } from "@clerk/clerk-react";
@@ -7,34 +7,37 @@ import { useUser } from "@clerk/clerk-react";
 const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: (val: boolean) => void }) => {
   // const [open, setOpen] = useState(false);
   const { user } = useUser();
-  // Rôle simulé depuis localStorage ( à remplacer avec AuthContext plus tard)
+  const { lng } = useParams<{ lng: string }>();
+  // Rôle simulé depuis localStorage (à remplacer avec AuthContext plus tard)
   const role = (user?.unsafeMetadata?.role as "AGENT" | "PROSPECT") || "PROSPECT";
 
+  const { t } = useTranslation();
+  
   const links =
     role === "AGENT"
       ? [
-        { path: "/dashboard/agent", label: "Tableau de bord", icon: <Home size={18} /> },
-        { path: "/dashboard/agent/annonces", label: "Mes annonces", icon: <List size={18} /> },
-        { path: "/dashboard/agent/annonces/new", label: "Publier une annonce", icon: <FilePlus size={18} /> },
-        { path: "/dashboard/agent/messages", label: "Messagerie", icon: <MessageCircleIcon size={18} /> },
-        { path: "/dashboard/agent/rdv", label: "Rendez-vous", icon: <Calendar size={18} /> },
-        { path: "/dashboard/agent/profile", label: "Profil", icon: <User size={18} /> },
-        { path: "/dashboard/agent/settings", label: "Paramètres", icon: <Settings size={18} /> }
+        { path: `/${lng}/dashboard/agent`, label: t('sidebar.dashboard'), icon: <Home size={18} /> },
+        { path: `/${lng}/dashboard/agent/annonces`, label: t('sidebar.myListings'), icon: <List size={18} /> },
+        { path: `/${lng}/dashboard/agent/annonces/new`, label: t('sidebar.publishAd'), icon: <FilePlus size={18} /> },
+        { path: `/${lng}/dashboard/agent/messages`, label: t('sidebar.messaging'), icon: <MessageCircleIcon size={18} /> },
+        { path: `/${lng}/dashboard/agent/rdv`, label: t('sidebar.appointments'), icon: <Calendar size={18} /> },
+        { path: `/${lng}/dashboard/agent/profile`, label: t('sidebar.profile'), icon: <User size={18} /> },
+        { path: `/${lng}/dashboard/agent/settings`, label: t('sidebar.settings'), icon: <Settings size={18} /> }
       ]
       : [
-        { path: "/dashboard/prospect", label: "Tableau de bord", icon: <Home size={18} /> },
-        { path: "/dashboard/prospect/favoris", label: "Mes favoris", icon: <Heart size={18} /> },
-        { path: "/dashboard/prospect/messages", label: "Messagerie", icon: <MessageCircleIcon size={18} /> },
-        { path: "/dashboard/prospect/rdv", label: "Rendez-vous", icon: <Calendar size={18} /> },
-        { path: "/dashboard/prospect/profile", label: "Profil", icon: <User size={18} /> },
-        { path: "/dashboard/prospect/settings", label: "Paramètres", icon: <Settings size={18} /> }
+        { path: `/${lng}/dashboard/prospect`, label: t('sidebar.dashboard'), icon: <Home size={18} /> },
+        { path: `/${lng}/dashboard/prospect/favoris`, label: t('sidebar.myFavorites'), icon: <Heart size={18} /> },
+        { path: `/${lng}/dashboard/prospect/messages`, label: t('sidebar.messaging'), icon: <MessageCircleIcon size={18} /> },
+        { path: `/${lng}/dashboard/prospect/rdv`, label: t('sidebar.appointments'), icon: <Calendar size={18} /> },
+        { path: `/${lng}/dashboard/prospect/profile`, label: t('sidebar.profile'), icon: <User size={18} /> },
+        { path: `/${lng}/dashboard/prospect/settings`, label: t('sidebar.settings'), icon: <Settings size={18} /> }
       ];
 
   return (
     <>
       {/* Bouton burger mobile */}
       <button
-        className="lg:hidden p-3 fixed top-4 left-4 z-10  text-black "
+        className="lg:hidden p-3 fixed top-4 left-4 z-10 text-black "
         onClick={() => setOpen(true)}
       >
         <Menu size={20} />
@@ -54,7 +57,6 @@ const Sidebar = ({ open, setOpen }: { open: boolean; setOpen: (val: boolean) => 
           fixed top-0 left-0 transform
           ${open ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0 lg:static`}
-
       >
 
 

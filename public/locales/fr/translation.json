@@ -61,7 +61,15 @@
         "tteA": "Toutes nos annonces"
     },
     "ownerCard": {
-        "RDV": "📅 Prendre RDV"
+        "RDV": "📅  Prendre RDV",
+        "agent": "Agent immobilier",
+        "prospect": "Particulier"
+    },
+    "dashboard": {
+        "agentWelcome": "Bienvenue Agent",
+        "agentSubtitle": "Gérez vos annonces, rendez-vous et contacts.",
+        "prospectWelcome": "Bienvenue Prospect",
+        "prospectSubtitle": "Consultez vos favoris, vos rendez-vous et vos infos personnelles."
     },
     "rdvModal": {
         "pdrRDV": "Prendre rendez-vous avec",
@@ -103,7 +111,8 @@
         "seConn": "Se connecter",
         "pasCompte": "Vous n'avez pas de compte ?",
         "clique": "Cliquez ici",
-        "mdpOublie": "Mot de passe oublié ?"
+        "mdpOublie": "Mot de passe oublié ?",
+        "loginWithGoogle": "Connectez-vous avec Google"
     },
     "inscription": {
         "cree": "Créer un compte",
@@ -124,7 +133,7 @@
         "menLeg": "Mentions légales",
         "conf": "Confidentialité",
         "suivre": "Suivez-nous",
-        "copyright": "© {{year}} LAMAISON. Tous droits réservés."
+        "copyright": " LAMAISON. Tous droits réservés."
     },
     "CGU": {
         "title": "Conditions Générales d’Utilisation",
@@ -152,10 +161,158 @@
         "body1": "Hébergeur : [Nom de l’hébergeur], situé à [adresse]."
     },
     "logo": {
-        "title": "retour à la page d'accueil"
+        "title": "Retour à l'accueil de LAMAISON"
+    },
+    "settings": {
+        "title": "Paramètres",
+        "sections": {
+            "security": "Sécurité",
+            "language": "Langue",
+            "notifications": "Notifications",
+            "role": "Rôle"
+        },
+        "password": {
+            "current": "Mot de passe actuel",
+            "new": "Nouveau mot de passe",
+            "confirm": "Confirmer le mot de passe",
+            "updateButton": "Mettre à jour",
+            "success": "Mot de passe mis à jour !",
+            "mismatch": "Les mots de passe ne correspondent pas !"
+        },
+        "role": {
+            "current": "Rôle actuel",
+            "prospect": "Particulier",
+            "agent": "Agent Immobilier",
+            "description": "Changer votre rôle vous permettra d'accéder à différentes fonctionnalités.",
+            "updateButton": "Mettre à jour le rôle",
+            "updating": "Mise à jour...",
+            "success": "Rôle mis à jour avec succès ! Redirection en cours..."
+        },
+        "languageOptions": {
+            "fr": "Français",
+            "en": "Anglais"
+        },
+        "notifications": {
+            "email": "Recevoir des notifications par e-mail",
+            "push": "Recevoir des notifications push"
+        }
+    },
+    "sidebar": {
+        "dashboard": "Tableau de bord",
+        "myListings": "Mes annonces",
+        "publishAd": "Publier une annonce",
+        "messaging": "Messagerie",
+        "appointments": "Rendez-vous",
+        "profile": "Profil",
+        "settings": "Paramètres",
+        "myFavorites": "Mes favoris"
+    },
+    "rdvProspect": {
+        "title": "Mes rendez-vous",
+        "note": "Pour prendre un RDV, consultez les annonces et cliquez sur le bouton \"Prendre RDV\".",
+        "chooseDate": "Choisissez une date :",
+        "confirmButton": "➕ Confirmer ce RDV",
+        "selectDateAlert": "Veuillez sélectionner une date !",
+        "proposal": {
+            "title": "Proposition reçue",
+            "description": "L'agent propose un nouveau créneau",
+            "accept": "Accepter la proposition"
+        },
+        "defaultAppointment": {
+            "time": "14h00",
+            "property": "Appartement à définir",
+            "agent": "Agent à définir"
+        }
+    },
+    "rdvAgent": {
+        "title": " RDV avec les prospects",
+        "noAppointments": "Aucun rendez-vous prévu",
+        "appointments": {
+            "pending": "En attente de confirmation",
+            "confirmed": "Confirmés",
+            "rejected": "Refusés",
+            "proposition": "Propositions envoyées"
+        }
+    },
+    "rdvCard": {
+        "prospect": "Prospect",
+        "agent": "Agent",
+        "status": {
+            "pending": "en attente",
+            "confirmed": "confirmé",
+            "rejected": "refusé",
+            "proposal": "proposition"
+        },
+        "actions": {
+            "confirm": "Confirmer",
+            "reject": "Refuser",
+            "atTime": "à"
+        }
+    },
+    "notifications": {
+        "title": "Notifications",
+        "empty": "Aucune notification",
+        "new": "Nouveau",
+        "clearAll": "Effacer tout",
+        "rdvRequest": "Nouvelle demande de RDV",
+        "rdvResponse": "Réponse à votre RDV",
+        "rdvAccepted": "Votre RDV a été accepté",
+        "rdvRejected": "Votre RDV a été refusé"
+    },
+    "profile": {
+        "title": "Profil",
+        "updateSuccess": "Profil mis à jour avec succès !",
+        "role": {
+            "agent": "Agent Immobilier",
+            "user": "Particulier"
+        },
+        "fields": {
+            "name": "Nom",
+            "email": "Email",
+            "phone": "Téléphone",
+            "avatar": "Photo de profil"
+        },
+        "buttons": {
+            "save": "Sauvegarder",
+            "changeAvatar": "Changer la photo"
+        }
+    },
+    "annonceForm": {
+        "title": "Publier une annonce (AGENT)",
+        "fields": {
+            "titre": "Titre",
+            "description": "Description",
+            "prix": "Prix (FCFA)",
+            "ville": "Ville",
+            "type": "Type de bien",
+            "typeOptions": {
+                "maison": "Maison",
+                "appartement": "Appartement",
+                "terrain": "Terrain",
+                "chambre": "Chambre",
+                "meublé": "Meublé"
+            },
+            "surface": "Surface",
+            "chambres": "Chambres",
+            "douches": "Douches",
+            "images": "Images du bien (plusieurs possibles)",
+            "uploadedImages": "Images uploadées :"
+        },
+        "buttons": {
+            "publish": "Publier",
+            "publishing": "Publication...",
+            "uploading": "Upload en cours..."
+        },
+        "errors": {
+            "loginRequired": "Vous devez être connecté pour créer une annonce",
+            "userNotFound": "Utilisateur introuvable (Clerk)",
+            "uploadError": "Erreur lors de l'upload des images : {error}",
+            "serverError": "Erreur serveur ({status})",
+            "publishSuccess": "Annonce publiée avec succès !"
+        }
     },
     "dateseJourPicker": {
-        "duree": "📆 Choisir la durée du séjour",
+        "duree": " Choisir la durée du séjour",
         "arrivee": "Date d'arrivée",
         "depart": "Date de départ",
         "selection": "Sélectionner une date"
@@ -180,5 +337,77 @@
         "erreurMismatch": " Les mots de passe ne correspondent pas",
         "erreurServeur": " Erreur côté serveur",
         "erreurReseau": " Une erreur réseau est survenue"
+    },
+    "favoris": {
+        "title": "Mes Favoris",
+        "loginRequired": "Connectez-vous pour voir vos favoris.",
+        "noFavorites": "Aucun favori pour le moment"
+    },
+    "common": {
+        "loading": "Chargement...",
+        "error": "Erreur"
+    },
+    "header": {
+        "backToSite": "Retour sur le site",
+        "myAccount": "Mon Compte",
+        "logout": "Déconnexion"
+    },
+    "annonceList": {
+        "myListingsTitle": "Mes annonces publiées",
+        "loading": "Chargement…",
+        "editPlaceholders": {
+            "title": "Titre",
+            "description": "Description",
+            "price": "Prix (FCFA)",
+            "city": "Ville",
+            "type": "Type de bien",
+            "surface": "Surface (m²)",
+            "bedrooms": "Nombre de chambres",
+            "showers": "Nombre de douches"
+        },
+        "actions": {
+            "save": "Enregistrer",
+            "cancel": "Annuler",
+            "edit": "Modifier",
+            "delete": "Supprimer",
+            "deleteConfirm": "Supprimer cette annonce ?"
+        },
+        "errors": {
+            "authRequired": "Authentification requise",
+            "updateError": "Erreur lors de la mise à jour",
+            "deleteError": "Erreur lors de la suppression"
+        }
+    },
+    "messages": {
+        "chat": {
+            "backButton": "Retour",
+            "conversation": "Conversation",
+            "typeMessage": "Écrire un message...",
+            "you": "Moi"
+        },
+        "conversations": {
+            "title": "Conversations",
+            "noConversations": "Aucune conversation",
+            "newMessage": "Nouveau message",
+            "conversationWith": "Conversation avec"
+        },
+        "status": {
+            "online": "En ligne",
+            "offline": "Hors ligne",
+            "typing": "est en train d'écrire..."
+        },
+        "actions": {
+            "send": "Envoyer",
+            "sendMessage": "Envoyer le message"
+        },
+        "mockData": {
+            "agent1": "Agence Dupont",
+            "agent2": "Prospect Martin",
+            "admin": "Admin",
+            "message1": "Bonjour, intéressé par l'annonce ?",
+            "message2": "Merci pour la visite !",
+            "message3": "Rappel: vos annonces expirent bientôt",
+            "message4": "Oui, pouvez-vous me donner plus de détails ?"
+        }
     }
 }

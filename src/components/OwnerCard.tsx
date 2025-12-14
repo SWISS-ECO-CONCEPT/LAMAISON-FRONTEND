@@ -17,7 +17,7 @@ interface OwnerCardProps {
 
 const OwnerCard: React.FC<OwnerCardProps> = ({
   nom,
-  tel,
+  // tel,
   email,
   type,
   // avatar,
@@ -45,7 +45,7 @@ const OwnerCard: React.FC<OwnerCardProps> = ({
           <span
             className={`inline-block px-2 py-1 mt-1 rounded-full text-xs font-medium ${badgeColor}`}
           >
-            {type === 'AGENT' ? 'Agent immobilier' : 'Propriétaire particulier'}
+            {type === 'AGENT' ? t('ownerCard.agent') : t('ownerCard.prospect')}
           </span>
 
           {/* {agence && (
@@ -57,7 +57,10 @@ const OwnerCard: React.FC<OwnerCardProps> = ({
               ✉️ <a href={`mailto:${email}`} className="hover:underline">{email}</a>
             </p>
           )}
-          <p className="text-sm text-gray-700 mt-1">📞 {tel}</p>
+          {/* <p className="text-sm text-gray-700 mt-1">📞 {tel}</p> */}
+          {/* <p className='text-sm text-gray-600 mt-1'> 
+            <a href={`mailto:${email}`} className='hover:underline'> envoyez un mail {email}</a>
+          </p> */}
         </div>
       </div>
 
