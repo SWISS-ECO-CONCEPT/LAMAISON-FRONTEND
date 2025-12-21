@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import MessageInput from "./MessageInput"
 import { useAuth } from "@clerk/clerk-react"
-import { getConversationMessages, getMe, sendMessage, type MessageDto } from "../../../services/messagingService"
+import { getConversationMessages, getMe, sendMessage, getUserById, type MessageDto } from "../../../services/messagingService"
 
 interface Message {
   id: number
@@ -21,6 +21,7 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
   const { getToken } = useAuth();
   const [myUserId, setMyUserId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([])
+  const [otherUser, setOtherUser] = useState<any>(null);
 
   const otherUserId = conversationId;
 
@@ -61,6 +62,21 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
     loadConversation();
   }, [canLoad, myUserId, otherUserId, t]);
 
+  useEffect(() => {
+    const loadOtherUser = async () => {
+      if (!otherUserId) return;
+      try {
+        const token = await getToken();
+        if (!token) return;
+        const user = await getUserById(otherUserId, token);
+        setOtherUser(user);
+      } catch (e) {
+        console.error('Erreur chargement interlocuteur:', e);
+      }
+    };
+    loadOtherUser();
+  }, [otherUserId, getToken]);
+
   const handleSendMessage = async (text: string) => {
     if (myUserId === null) return;
     try {
@@ -90,7 +106,7 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
             ← {t('messages.chat.backButton', 'Retour')}
           </button>
           <h2 className="font-semibold">
-            {t('messages.chat.conversation', 'Conversation')} {conversationId}
+            {t('messages.chat.conversation', 'Conversation avec')} {otherUser?.firstname || conversationId}
           </h2>
         </div>
         <div className="text-sm text-gray-500">
@@ -101,16 +117,15 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
       {/* Messages */}
       <div className="flex-1 p-4 overflow-y-auto space-y-4">
         {messages.map((msg) => (
-          <div 
+          <div
             key={msg.id}
             className={`flex ${msg.isCurrentUser ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`p-3 rounded-lg max-w-xs lg:max-w-md ${
-                msg.isCurrentUser
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-100 text-gray-800"
-              }`}
+              className={`p-3 rounded-lg max-w-xs lg:max-w-md ${msg.isCurrentUser
+                ? "bg-blue-500 text-white"
+                : "bg-gray-100 text-gray-800"
+                }`}
             >
               {!msg.isCurrentUser && (
                 <p className="font-semibold text-sm mb-1">{msg.sender}</p>

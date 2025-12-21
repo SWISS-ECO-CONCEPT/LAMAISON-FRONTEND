@@ -119,6 +119,7 @@ const RdvProspect: React.FC = () => {
       const token = await getToken();
       const conv = await getOrCreateConversation(user.id, rdv.agentClerkId, rdv.id, token || undefined);
       const otherUserId = conv.receiverId; // agent
+      console.log("other",  conv.receiverId)
 
       const base = location.pathname.includes('/dashboard/agent') ? '/dashboard/agent/messages' : '/dashboard/prospect/messages';
       navigate(`${base}?otherUserId=${otherUserId}`);

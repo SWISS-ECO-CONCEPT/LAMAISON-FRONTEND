@@ -4,6 +4,7 @@ import RdvCard from "../AppointmentComponents/RdvCard";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { getOrCreateConversation } from "../../../services/messagingService";
 import { useLocation, useNavigate } from "react-router-dom";
+import ProposeDateModal from "./ProposeDateModal";
 
 type RdvData = {
   id: number;
@@ -41,8 +42,10 @@ const RdvAgent: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentRdvIndex, setCurrentRdvIndex] = useState<number | null>(null);
 
-      useEffect(() => {
+  useEffect(() => {
     const fetchRdvs = async () => {
       if (!user?.id) return;
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
@@ -52,9 +55,9 @@ const RdvAgent: React.FC = () => {
         const mapped: RdvData[] = data.map((r: RemoteRdvData) => ({
           id: r.id,
           date: new Date(r.date).toLocaleDateString(),
-          heure: new Date(r.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+          heure: new Date(r.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           proposedDate: r.proposedDate ? new Date(r.proposedDate).toLocaleDateString() : undefined,
-          proposedHeure: r.proposedDate ? new Date(r.proposedDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : undefined,
+          proposedHeure: r.proposedDate ? new Date(r.proposedDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : undefined,
           bien: r.annonce?.titre || '—',
           prospect: `${r.nom || r.prenom || ''}`.trim(),
           status: r.status === 'ACCEPTE' ? 'confirmed' : (r.status === 'REFUSE' || r.status === 'ANNULE' ? 'rejected' : (r.status === 'PROPOSE' ? 'proposed' : 'pending')),
@@ -63,7 +66,7 @@ const RdvAgent: React.FC = () => {
           prospectClerkId: r.prospect?.clerkId,
         }))
         setRdvs(mapped)
-        
+
       } catch (err) {
         console.error('Erreur fetch rdvs agent', err)
       }
@@ -86,7 +89,7 @@ const RdvAgent: React.FC = () => {
       }
       const res = await fetch(`${API_URL}/rdvs/${rdv.id}`, {
         method: 'PATCH',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
@@ -113,6 +116,7 @@ const RdvAgent: React.FC = () => {
     try {
       const token = await getToken();
       const conv = await getOrCreateConversation(rdv.prospectClerkId, user.id, rdv.id, token || undefined);
+      console.log("userId: ", user.id)
       const otherUserId = conv.senderId; // prospect
 
       // keep current dashboard prefix (/dashboard/agent or /dashboard/prospect)
@@ -123,17 +127,15 @@ const RdvAgent: React.FC = () => {
     }
   };
 
-  const handlePropose = async (index: number) => {
-    const rdv = rdvs[index];
-    if (!rdv) return;
+  const handlePropose = (index: number) => {
+    setCurrentRdvIndex(index);
+    setIsModalOpen(true);
+  };
 
-    const proposed = window.prompt('Nouvelle date/heure (ex: 2025-12-31T14:30)');
-    if (!proposed) return;
-    const proposedDate = new Date(proposed);
-    if (Number.isNaN(proposedDate.getTime())) {
-      console.error('Date invalide');
-      return;
-    }
+  const confirmProposal = async (proposedDate: Date) => {
+    if (currentRdvIndex === null) return;
+    const rdv = rdvs[currentRdvIndex];
+    if (!rdv) return;
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     try {
@@ -153,12 +155,13 @@ const RdvAgent: React.FC = () => {
         throw new Error('Erreur lors de la proposition');
       }
       const updated = await res.json();
-      setRdvs((prev) => prev.map((r, i) => i === index ? {
+      setRdvs((prev) => prev.map((r, i) => i === currentRdvIndex ? {
         ...r,
         status: 'proposed',
         proposedDate: new Date(updated.proposedDate || proposedDate).toLocaleDateString(),
-        proposedHeure: new Date(updated.proposedDate || proposedDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+        proposedHeure: new Date(updated.proposedDate || proposedDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       } : r));
+      setIsModalOpen(false);
     } catch (e) {
       console.error('Erreur propose rdv', e);
     } finally {
@@ -199,6 +202,13 @@ const RdvAgent: React.FC = () => {
           </div>
         ))
       )}
+
+      <ProposeDateModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onConfirm={confirmProposal}
+        isLoading={loadingId !== null}
+      />
     </div>
   );
 };

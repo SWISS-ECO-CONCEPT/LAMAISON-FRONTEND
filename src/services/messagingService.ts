@@ -133,3 +133,35 @@ export const sendMessage = async (senderId: number, receiverId: number, content:
 
   return await response.json();
 };
+
+export const getUserConversations = async (token: string) => {
+  const response = await fetch(`${API_BASE}/messages`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur lors de la récupération des conversations (${response.status})`);
+  }
+
+  return await response.json();
+};
+
+export const getUserById = async (id: number, token: string): Promise<DbUser> => {
+  const response = await fetch(`${API_BASE}/auth/user/${id}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Erreur lors de la récupération de l'utilisateur (${response.status})`);
+  }
+
+  return await response.json();
+};
