@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import { Bell, X } from "lucide-react";
-import { useNotificationSound } from "../../../hooks/useNotificationSound";
+
 
 export interface NotificationData {
   id: string;
