@@ -2,21 +2,60 @@ import React, { useEffect, useState } from "react"
 import { useLocation } from "react-router-dom"
 import ConversationsList from "../components/DashboardComponents/MessageComponents/ConversationsList"
 import ChatWindow from "../components/DashboardComponents/MessageComponents/ChatWindow"
+import { useAuth } from "@clerk/clerk-react"
+import { getOrCreateConversation } from "../services/messagingService"
 
 const MessagesLayout: React.FC = () => {
   const [selectedConversation, setSelectedConversation] = useState<number | null>(null)
   const location = useLocation();
+  const { getToken, userId: myClerkId } = useAuth();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const otherUserId = params.get('otherUserId');
-    if (otherUserId) {
-      const parsed = Number(otherUserId);
-      if (!Number.isNaN(parsed)) {
-        setSelectedConversation(parsed);
+    const resolveConversation = async () => {
+      const params = new URLSearchParams(location.search);
+      const otherUserId = params.get('otherUserId');
+      
+      if (otherUserId) {
+        const parsed = Number(otherUserId);
+        if (!Number.isNaN(parsed)) {
+          setSelectedConversation(parsed);
+          return;
+        }
       }
-    }
-  }, [location.search]);
+
+      // Check for clerkId params
+      const prospectClerkId = params.get('prospectClerkId');
+      const agentClerkId = params.get('agentClerkId');
+      const rdvId = params.get('rdvId');
+
+      if (prospectClerkId && agentClerkId) {
+        setLoading(true);
+        try {
+          const token = await getToken();
+          const conv = await getOrCreateConversation(
+            prospectClerkId,
+            agentClerkId,
+            rdvId ? Number(rdvId) : undefined,
+            token || undefined
+          );
+          
+          if (conv) {
+            // conv.senderId is prospect, conv.receiverId is agent
+            // We want the one that is NOT us
+            const otherDbId = myClerkId === prospectClerkId ? conv.receiverId : conv.senderId;
+            setSelectedConversation(otherDbId);
+          }
+        } catch (err) {
+          console.error("Error resolving conversation:", err);
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+
+    resolveConversation();
+  }, [location.search, getToken, myClerkId]);
 
   return (
     <div className="flex h-[calc(100vh-4rem)] bg-gray-50">
@@ -25,7 +64,12 @@ const MessagesLayout: React.FC = () => {
         <ConversationsList onSelectConversation={setSelectedConversation} />
       </div>
 
-      <div className="hidden md:flex flex-1">
+      <div className="hidden md:flex flex-1 relative">
+        {loading && (
+          <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        )}
         {selectedConversation ? (
           <ChatWindow
             conversationId={selectedConversation}
@@ -39,7 +83,12 @@ const MessagesLayout: React.FC = () => {
       </div>
 
       {/* Mobile layout : soit liste, soit chat */}
-      <div className="flex md:hidden flex-1">
+      <div className="flex md:hidden flex-1 relative">
+        {loading && (
+          <div className="absolute inset-0 bg-white/50 flex items-center justify-center z-10">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          </div>
+        )}
         {selectedConversation === null ? (
           <ConversationsList onSelectConversation={setSelectedConversation} />
         ) : (

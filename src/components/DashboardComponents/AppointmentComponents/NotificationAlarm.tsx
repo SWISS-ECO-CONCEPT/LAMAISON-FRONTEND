@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import { Bell, X } from "lucide-react";
-import { useNotificationSound } from "../../../hooks/useNotificationSound";
+
 
 export interface NotificationData {
   id: string;
@@ -27,14 +27,13 @@ const NotificationAlarm: React.FC<NotificationAlarmProps> = ({
 }) => {
   const [showPanel, setShowPanel] = useState(false);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
-  const { playSound } = useNotificationSound();
+  // const { playSound } = useNotificationSound();
 
-  useEffect(() => {
-    // Jouer le son quand une nouvelle notification arrive
-    if (unreadCount > 0) {
-      playSound();
-    }
-  }, [unreadCount, playSound]);
+  // useEffect(() => {
+  //   if (unreadCount > 0) {
+  //     playSound();
+  //   }
+  // }, [unreadCount, playSound]);
 
   const getNotificationColor = (type: string) => {
     if (type === "rdv-request") return "border-blue-500 bg-blue-50";

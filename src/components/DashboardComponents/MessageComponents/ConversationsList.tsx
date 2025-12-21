@@ -1,5 +1,7 @@
 import React from "react"
 import { useTranslation } from "react-i18next"
+import { useAuth } from "@clerk/clerk-react"
+import { getUserConversations } from "../../../services/messagingService"
 
 type Props = {
   onSelectConversation: (id: number) => void
@@ -7,44 +9,63 @@ type Props = {
 
 const ConversationsList: React.FC<Props> = ({ onSelectConversation }) => {
   const { t } = useTranslation()
-  
-  const mockConversations = [
-    { 
-      id: 1, 
-      name: t('messages.mockData.agent1', 'Agence Dupont'), 
-      lastMessage: t('messages.mockData.message1', 'Bonjour, intéressé par l\'annonce ?') 
-    },
-    { 
-      id: 2, 
-      name: t('messages.mockData.agent2', 'Prospect Martin'), 
-      lastMessage: t('messages.mockData.message2', 'Merci pour la visite !') 
-    },
-    { 
-      id: 3, 
-      name: t('messages.mockData.admin', 'Admin'), 
-      lastMessage: t('messages.mockData.message3', 'Rappel: vos annonces expirent bientôt') 
-    },
-  ]
+  const { getToken } = useAuth()
+  const [conversations, setConversations] = React.useState<any[]>([])
+  const [loading, setLoading] = React.useState(true)
+  const [error, setError] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    const loadConversations = async () => {
+      try {
+        const token = await getToken()
+        if (!token) return
+        const data = await getUserConversations(token)
+        setConversations(data)
+      } catch (err) {
+        console.error("Error loading conversations:", err)
+        setError(t('messages.conversations.error', 'Erreur lors du chargement des conversations'))
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadConversations()
+  }, [getToken, t])
 
   return (
     <div className="w-full h-full overflow-y-auto bg-white">
       <h2 className="text-lg font-semibold p-4 border-b">
         {t('messages.conversations.title', 'Conversations')}
       </h2>
-      {mockConversations.length === 0 ? (
-        <p className="p-4 text-gray-500">
+      {loading ? (
+        <p className="p-4 text-gray-500 text-center">{t('common.loading', 'Chargement...')}</p>
+      ) : error ? (
+        <p className="p-4 text-red-500 text-center">{error}</p>
+      ) : conversations.length === 0 ? (
+        <p className="p-4 text-gray-500 text-center">
           {t('messages.conversations.noConversations', 'Aucune conversation')}
         </p>
       ) : (
-        mockConversations.map((conv) => (
+        conversations.map((conv) => (
           <div
             key={conv.id}
             onClick={() => onSelectConversation(conv.id)}
-            className="p-4 border-b hover:bg-gray-50 cursor-pointer"
-            aria-label={`${t('messages.conversations.conversationWith', 'Conversation avec')} ${conv.name}`}
+            className="p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors"
+            aria-label={`${t('messages.conversations.conversationWith', 'Conversation avec')} ${conv.otherUser.firstname}`}
           >
-            <p className="font-medium">{conv.name}</p>
-            <p className="text-sm text-gray-500 truncate">{conv.lastMessage}</p>
+            <div className="flex items-center space-x-3">
+              {conv.otherUser.avatar ? (
+                <img src={conv.otherUser.avatar} alt="" className="w-10 h-10 rounded-full" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+                  {conv.otherUser.firstname.charAt(0)}
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
+                <p className="font-medium text-gray-900 truncate">{conv.otherUser.firstname}</p>
+                <p className="text-sm text-gray-500 truncate">{conv.lastMessage.content}</p>
+              </div>
+            </div>
           </div>
         ))
       )}
