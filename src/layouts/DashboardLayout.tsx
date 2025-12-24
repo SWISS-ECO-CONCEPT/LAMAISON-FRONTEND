@@ -7,6 +7,7 @@ import { useUser } from "@clerk/clerk-react";
 // import { useNotifications } from "../hooks/useNotifications";
 import { useNotificationsContext } from "../context/NotificationsContext";
 import { useSimpleSocket } from "../services/socket.service";
+import { useInactivityLogout } from "../hooks/useInactivityLogout";
 
 
 const DashboardLayout = () => {
@@ -19,11 +20,15 @@ const DashboardLayout = () => {
   const { user, isLoaded } = useUser();
   const { addNotification } = useNotificationsContext();
   const socket = useSimpleSocket();
+  
+  // Activer la déconnexion automatique après inactivité
+  useInactivityLogout();
 
   useEffect(() => {
     if (!socket || !user?.id) return;
 
-    const handler = (payload: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = (payload:any) => {
       const isForAgent = payload?.agentClerkId && payload.agentClerkId === user.id;
       const isForProspect = payload?.prospectClerkId && payload.prospectClerkId === user.id;
       if (!isForAgent && !isForProspect) return;

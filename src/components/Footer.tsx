@@ -30,9 +30,9 @@ const Footer: React.FC = () => {
                 <div>
                     <h3 className="text-base md:text-lg font-semibold mb-2">{t('footer.legal')}</h3>
                     <ul className="space-y-1 text-sm">
-                        <li><Link to={`/${lng}/cgu`}>{t('footer.condGen')}</Link></li>
-                        <li><Link to={`/${lng}/legal-notice`}>{t('footer.menLeg')}</Link></li>
-                        <li><Link to={`/${lng}/confidentiality`}>{t('footer.conf')}</Link></li>
+                        <li><Link className='hover:text-green-600 transition' to={`/${lng}/cgu`}>{t('footer.condGen')}</Link></li>
+                        <li><Link className='hover:text-green-600 transition' to={`/${lng}/legal-notice`}>{t('footer.menLeg')}</Link></li>
+                        <li><Link className='hover:text-green-600 transition' to={`/${lng}/confidentiality`}>{t('footer.conf')}</Link></li>
                     </ul>
                 </div>
 
