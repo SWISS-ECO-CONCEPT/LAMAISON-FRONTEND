@@ -17,7 +17,7 @@ const Navbar: React.FC = () => {
   const { lng } = useParams<{ lng: string }>();
   const { user } = useUser()
   return (
-    <header className="bg-green-600 backdrop-blur-sm text-white fixed top-0 w-full z-50">
+    <header className="fixed top-0 z-50 w-full bg-green-600 backdrop-blur-sm text-white fixed top-0 w-full z-50 shadow-sm">
       <div className="flex items-center justify-between px-6 py-4">
         {/* Logo */}
         <Link to="/" title={t('logo.title')}>
@@ -28,17 +28,17 @@ const Navbar: React.FC = () => {
 
           {/* Menu desktop */}
 
-          <nav className="hidden md:flex space-x-6 text-sm items-center">
-            <Link to={`/${lng}/home`}>{t('navbar.acc')}</Link>
-            <Link to={`/${lng}/posts`}>{t('navbar.ann')}</Link>
-            <Link to={`/${lng}/about`}>{t('navbar.aprop')}</Link>
-            <Link to={`/${lng}/contact`}>{t('navbar.cont')}</Link>
+          <nav className="hidden md:flex space-x-6 text-sm items-center font-medium">
+            <Link className='hover:opacity-80' to={`/${lng}/home`}>{t('navbar.acc')}</Link>
+            <Link className='hover:opacity-80' to={`/${lng}/posts`}>{t('navbar.ann')}</Link>
+            <Link className='hover:opacity-80' to={`/${lng}/about`}>{t('navbar.aprop')}</Link>
+            <Link className='hover:opacity-80' to={`/${lng}/contact`}>{t('navbar.cont')}</Link>
             {user ? (
-              <Link to={`/${lng}/dashboard`} className="text-xl">
+              <Link to={`/${lng}/dashboard`} className="text-xl hover:opacity-80">
                 <FaHouseUser />
               </Link>
             ) : (
-              <Link to={`/${lng}/login`} className="text-xl">
+              <Link to={`/${lng}/login`} className="text-xl hover:opacity-80">
                 <FaUserCircle />
               </Link>
             )
@@ -48,7 +48,7 @@ const Navbar: React.FC = () => {
 
           {/* Icône burger visible uniquement sur mobile (md:hidden) */}
 
-          <button className="md:hidden text-2xl" onClick={toggleMenu}>
+          <button className="md:hidden text-2xl hover:opacity-80" onClick={toggleMenu}>
             {menuOpen ? <FaTimes /> : <FaBars />}
           </button>
         </div>
@@ -56,16 +56,16 @@ const Navbar: React.FC = () => {
 
       {menuOpen && (
         <div className="md:hidden px-6 pb-4 pt-2 space-y-3 bg-green-600 text-sm">
-          <Link to={`/${lng}/home`} className="block">{t('navbar.acc')}</Link>
-          <Link to={`/${lng}/posts`} className="block">{t('navbar.ann')}</Link>
-          <Link to={`/${lng}/about`} className="block">{t('navbar.aprop')}</Link>
-          <Link to={`/${lng}/contact`} className="block">{t('navbar.cont')}</Link>
+          <Link to={`/${lng}/home`} className="block hover:opacity-80">{t('navbar.acc')}</Link>
+          <Link to={`/${lng}/posts`} className="block hover:opacity-80">{t('navbar.ann')}</Link>
+          <Link to={`/${lng}/about`} className="block hover:opacity-80">{t('navbar.aprop')}</Link>
+          <Link to={`/${lng}/contact`} className="block hover:opacity-80">{t('navbar.cont')}</Link>
           {user ? (
-            <Link to={`/${lng}/dashboard`} className="block">
+            <Link to={`/${lng}/dashboard`} className="block hover:opacity-80">
               {t('navbar.dash')}
             </Link>
           ) : (
-            <Link to={`/${lng}/login`} className="block">
+            <Link to={`/${lng}/login`} className="block hover:opacity-80">
               {t('navbar.connex')}
             </Link>
           )

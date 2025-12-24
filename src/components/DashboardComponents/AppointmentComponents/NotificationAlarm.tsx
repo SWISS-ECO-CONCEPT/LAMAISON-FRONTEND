@@ -71,7 +71,7 @@ const NotificationAlarm: React.FC<NotificationAlarmProps> = ({
 
       {/* Notifications Panel */}
       {showPanel && (
-        <div className="absolute top-16 right-0 w-96 max-h-96 bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden flex flex-col">
+        <div className="fixed top-16 right-4 w-96 max-h-[calc(100vh-5rem)] bg-white rounded-lg shadow-2xl border border-gray-200 overflow-hidden flex flex-col z-50">
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 flex justify-between items-center">
             <h3 className="font-bold text-lg"> Notifications</h3>

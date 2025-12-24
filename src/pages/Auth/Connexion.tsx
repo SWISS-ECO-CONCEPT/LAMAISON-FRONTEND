@@ -1,9 +1,10 @@
 import { t } from 'i18next'
-// import React from 'react'
+import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import * as yup from 'yup'
 import { useFormik, type FormikHelpers } from 'formik';
 import { useSignIn, useSignUp } from '@clerk/clerk-react';
+import { Eye, EyeOff } from 'lucide-react';
 import google from '../../assets/google.png'
 
 const schemaSignIn = yup.object().shape({
@@ -16,6 +17,7 @@ const Connexion = () => {
   const { signIn, setActive: setActiveSignIn } = useSignIn();
   const { signUp, setActive: setActiveSignUp } = useSignUp();
   const redirectUrl = `/${lng}/dashboard`;
+  const [showPassword, setShowPassword] = useState(false);
 
   const initialValues = {
     email: '',
@@ -119,14 +121,29 @@ const Connexion = () => {
 
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">{t('connexion.mdp')} <span className="text-gray-400">*</span></label>
-          <input
-            type="password"
-            name="password"
-            value={formik.values.password}
-            onChange={formik.handleChange('password')}
-            placeholder={t('connexion.Vmdp')}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
-          />
+          <div className="relative">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              name="password"
+              value={formik.values.password}
+              onChange={formik.handleChange('password')}
+              placeholder={t('connexion.Vmdp')}
+              className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
+              tabIndex={-1}
+            >
+              {showPassword ? (
+                <EyeOff className="h-5 w-5" />
+              ) : (
+                <Eye className="h-5 w-5" />
+              )}
+            </button>
+          </div>
           {formik.errors.password && formik.touched.password && (
             <div className="text-red-600 text-sm mt-1">{formik.errors.password}</div>
           )}
