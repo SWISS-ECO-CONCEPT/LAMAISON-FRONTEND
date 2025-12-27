@@ -130,6 +130,9 @@ const Connexion = () => {
               onChange={formik.handleChange('password')}
               placeholder={t('connexion.Vmdp')}
               className="w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition"
+              // autoComplete="current-password"
+              // autoCorrect="off"
+              // spellCheck="false"
             />
             <button
               type="button"

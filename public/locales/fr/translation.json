@@ -133,7 +133,7 @@
         "menLeg": "Mentions légales",
         "conf": "Confidentialité",
         "suivre": "Suivez-nous",
-        "copyright": " LAMAISON. Tous droits réservés."
+        "copyright": " © {{year}} LAMAISON. Tous droits réservés."
     },
     "CGU": {
         "title": "Conditions Générales d’Utilisation",

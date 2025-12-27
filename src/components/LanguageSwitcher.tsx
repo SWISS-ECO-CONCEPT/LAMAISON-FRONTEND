@@ -32,7 +32,7 @@ const LanguageSwitcher: React.FC = () => {
         <div className="relative inline-block text-left">
             <button
                 onClick={() => setOpen(!open)}
-                className="flex items-center gap-2 px-3 py-1 text-sm border-none hover:bg-gray-100 hover:text-black transition-colors rounded-2xl"
+                className="flex items-center gap-2 px-3 py-1 text-sm border-none hover:opacity-80 transition-colors rounded-2xl"
             >
                 {currentLang && ( // 'flagCode' is not a property of 'languages' array elements. Use 'emoji' instead.
                     <Flag code={currentLang.emoji} style={{ width: 24, height: 16 }} />
