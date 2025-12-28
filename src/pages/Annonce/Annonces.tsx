@@ -46,7 +46,7 @@ const Annonces: React.FC = () => {
     }, [])
 
     return (
-        <section className="py-8 px-4 mt-14">
+        <section className="py-8 px-4 max-w-6xl mx-auto mt-14">
             <h2 className="text-2xl font-semibold mb-6 text-center">{t('annonces.tteA')}</h2>
 
             <div className="px-4 py-8 md:px-0">

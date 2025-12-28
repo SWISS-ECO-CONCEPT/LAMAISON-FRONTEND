@@ -46,7 +46,7 @@ const AnnoncesPreview: React.FC = () => {
     return () => { cancelled = true }
   }, [])
   return (
-    <section className="py-8 px-4">
+    <section className="py-8 px-4 max-w-6xl mx-auto">
       <h2 className="text-2xl font-semibold mb-6 text-center">{t('annoncepreview.recent')}</h2>
 
       {loading && <p className="text-center text-gray-600">{t('common.loading')}</p>}
