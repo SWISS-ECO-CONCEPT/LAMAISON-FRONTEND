@@ -1,13 +1,14 @@
 import { useEffect } from 'react';
 import { useUser, useClerk } from '@clerk/clerk-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
-const INACTIVITY_TIMEOUT = 5 * 60 * 1000; // 5 minutes en millisecondes
+const INACTIVITY_TIMEOUT = 5* 60 * 1000; // 5 minutes en millisecondes
 
 export const useInactivityLogout = () => {
   const { signOut } = useClerk();
   const { isSignedIn } = useUser();
   const navigate = useNavigate();
+  const { lng } = useParams<{ lng: string }>();
 
   useEffect(() => {
     if (!isSignedIn) return;
@@ -18,17 +19,21 @@ export const useInactivityLogout = () => {
       if (timeoutId) clearTimeout(timeoutId);
       
       timeoutId = setTimeout(() => {
+        console.log('Inactivité détectée - déconnexion...');
         // Déconnexion après l'expiration du délai d'inactivité
         signOut().then(() => {
-          navigate('/auth/sign-in');
+          navigate(`/${lng}/login`);
+        }).catch(err => {
+          console.error('Erreur lors de la déconnexion:', err);
+          navigate(`/${lng}/login`);
         });
       }, INACTIVITY_TIMEOUT);
     };
 
     // Réinitialiser le timer lors d'événements utilisateur
-    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
     events.forEach(event => {
-      window.addEventListener(event, resetTimer);
+      window.addEventListener(event, resetTimer, { passive: true });
     });
 
     // Démarrer le timer initial
@@ -41,5 +46,5 @@ export const useInactivityLogout = () => {
         window.removeEventListener(event, resetTimer);
       });
     };
-  }, [isSignedIn, signOut, navigate]);
+  }, [isSignedIn, signOut, navigate, lng]);
 };
