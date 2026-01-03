@@ -5,7 +5,7 @@ import { Calendar } from "lucide-react";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { format } from 'date-fns'
 import { getOrCreateConversation } from "../../../services/messagingService";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 type RdvCardData = {
   id: number;
@@ -37,7 +37,7 @@ const RdvProspect: React.FC = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+  const { lng } = useParams<{ lng: string }>();
   const [rdvs, setRdvs] = useState<RdvCardData[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingId, setLoadingId] = useState<number | null>(null);
@@ -120,8 +120,8 @@ const RdvProspect: React.FC = () => {
       const conv = await getOrCreateConversation(user.id, rdv.agentClerkId, rdv.id, token || undefined);
       const otherUserId = conv.receiverId; // agent
       console.log("other",  conv.receiverId)
-
-      const base = location.pathname.includes('/dashboard/agent') ? '/dashboard/agent/messages' : '/dashboard/prospect/messages';
+      const langPrefix = lng || 'fr';
+      const base = `/${langPrefix}/dashboard/prospect/messages`;
       navigate(`${base}?otherUserId=${otherUserId}`);
     } catch (e) {
       console.error('Erreur ouverture chat:', e);
@@ -157,14 +157,14 @@ const RdvProspect: React.FC = () => {
                   disabled={loadingId === rdv.id}
                   className={`px-3 py-1 bg-green-600 text-white rounded-lg text-sm transition ${loadingId === rdv.id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
                 >
-                  Accepter
+                  {t('rdvProspect.actions.accept')}
                 </button>
                 <button
                   onClick={() => handleProposalAction(i, 'reject')}
                   disabled={loadingId === rdv.id}
                   className={`px-3 py-1 bg-red-600 text-white rounded-lg text-sm transition ${loadingId === rdv.id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
                 >
-                  Refuser
+                  {t('rdvProspect.actions.reject')}
                 </button>
               </div>
             )}
@@ -174,7 +174,7 @@ const RdvProspect: React.FC = () => {
                 onClick={() => handleOpenChat(i)}
                 className="px-3 py-1 bg-gray-800 text-white rounded-lg text-sm transition hover:bg-gray-900"
               >
-                Messagerie
+                {t('rdvProspect.actions.messaging')}
               </button>
             </div>
           </div>

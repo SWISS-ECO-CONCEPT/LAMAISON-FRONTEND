@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import RdvCard from "../AppointmentComponents/RdvCard";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { getOrCreateConversation } from "../../../services/messagingService";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import ProposeDateModal from "./ProposeDateModal";
 
 type RdvData = {
@@ -40,7 +40,7 @@ const RdvAgent: React.FC = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
+  const { lng } = useParams<{ lng: string }>();
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentRdvIndex, setCurrentRdvIndex] = useState<number | null>(null);
@@ -118,9 +118,8 @@ const RdvAgent: React.FC = () => {
       const conv = await getOrCreateConversation(rdv.prospectClerkId, user.id, rdv.id, token || undefined);
       console.log("userId: ", user.id)
       const otherUserId = conv.senderId; // prospect
-
-      // keep current dashboard prefix (/dashboard/agent or /dashboard/prospect)
-      const base = location.pathname.includes('/dashboard/agent') ? '/dashboard/agent/messages' : '/dashboard/prospect/messages';
+      const langPrefix = lng || 'fr';
+      const base = `/${langPrefix}/dashboard/agent/messages`;
       navigate(`${base}?otherUserId=${otherUserId}`);
     } catch (e) {
       console.error('Erreur ouverture chat:', e);
@@ -190,13 +189,13 @@ const RdvAgent: React.FC = () => {
                 disabled={loadingId === rdv.id}
                 className={`px-3 py-1 bg-blue-600 text-white rounded-lg text-sm transition ${loadingId === rdv.id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700'}`}
               >
-                Proposer
+                {t('rdvAgent.buttons.propose')}
               </button>
               <button
                 onClick={() => handleOpenChat(i)}
                 className="px-3 py-1 bg-gray-800 text-white rounded-lg text-sm transition hover:bg-gray-900"
               >
-                Messagerie
+                {t('rdvAgent.buttons.messaging')}
               </button>
             </div>
           </div>

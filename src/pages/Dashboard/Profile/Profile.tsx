@@ -31,7 +31,7 @@ const Profile = () => {
   useEffect(() => {
     if (user) {
       setFormData({
-        firstname: (user.unsafeMetadata.firstName as string) || "",
+        firstname: (user.unsafeMetadata.firstname as string) || "",
         email: user.emailAddresses?.[0]?.emailAddress || "",
         phone: user.phoneNumbers?.[0]?.phoneNumber || "",
         role: (user.unsafeMetadata?.role as "AGENT" | "PROSPECT") || "PROSPECT",
