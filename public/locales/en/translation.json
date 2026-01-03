@@ -310,6 +310,11 @@
       "time": "2:00 PM",
       "property": "Property to be determined",
       "agent": "Agent to be determined"
+    },
+    "actions": {
+      "accept": "Accept",
+      "reject": "Reject",
+      "messaging": "Message"
     }
   },
   "rdvAgent": {
@@ -319,6 +324,10 @@
       "pending": "Pending confirmation",
       "confirmed": "Confirmed",
       "rejected": "Rejected"
+    },
+    "buttons": {
+      "propose": "Propose",
+      "messaging": "Message"
     }
   },
   "rdvCard": {
@@ -327,8 +336,10 @@
     "status": {
       "pending": "pending",
       "confirmed": "confirmed",
-      "rejected": "rejected"
+      "rejected": "rejected",
+      "proposed": "proposed"
     },
+    "messagePro":"Prospect's message:",
     "actions": {
         "confirm": "Confirm",
         "reject": "Reject",
@@ -404,5 +415,13 @@
         "message3": "Reminder: your listings will expire soon",
         "message4": "Yes, could you give me more details?"
     }
+},
+"proposeModal": {
+    "title": "Propose a new time slot",
+    "chooseDate": "Choose a date",
+    "chooseTime": "Choose a time",
+    "cancel": "Cancel",
+    "sending": "Sending...",
+    "confirm": "Confirm"
 }
 }

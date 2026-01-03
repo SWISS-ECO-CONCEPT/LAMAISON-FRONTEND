@@ -6,7 +6,7 @@ import OwnerCard from '../../components/OwnerCard'
 import RdvModal from '../../components/RdvModal'
 import { FaBed, FaRulerCombined, FaShower } from 'react-icons/fa'
 import { t } from 'i18next'
-import DateSejourPicker, { type DatesSejour } from '../../components/DateSejourPicker'
+// import DateSejourPicker, { type DatesSejour } from '../../components/DateSejourPicker'
 
 type ProprietaireOwnerCard = {
   nom: string
@@ -49,10 +49,10 @@ const AnnonceDetail: React.FC = () => {
   const [showRdv, setShowRdv] = useState(false)
 
   // Typage explicite
-  const [datesSejour, setDatesSejour] = useState<DatesSejour>({
-    startDate: null,
-    endDate: null
-  })
+  // const [datesSejour, setDatesSejour] = useState<DatesSejour>({
+  //   startDate: null,
+  //   endDate: null
+  // })
 
   useEffect(() => {
     let cancelled = false
@@ -181,7 +181,7 @@ const AnnonceDetail: React.FC = () => {
         </div>
 
         {/* Sélection du séjour */}
-        {isMeuble && <DateSejourPicker onChange={setDatesSejour} />}
+        {/* {isMeuble && <DateSejourPicker onChange={setDatesSejour} />} */}
 
         {/* Carte propriétaire */}
         <OwnerCard
@@ -191,7 +191,7 @@ const AnnonceDetail: React.FC = () => {
           type={proprietaire.type}
           onPrendre={() => setShowRdv(true)}
           isMeuble={isMeuble}
-          onChangeDates={setDatesSejour}
+          // onChangeDates={setDatesSejour}
         />
       </div>
 
@@ -202,7 +202,7 @@ const AnnonceDetail: React.FC = () => {
         proprietaireTel={proprietaire.tel}
          proprietaireId={a?.proprietaire?.id || 0}
          annonceId={a?.id || 0}
-        datesSejour={datesSejour}
+        // datesSejour={datesSejour}
       />
     </div>
   )

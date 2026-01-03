@@ -218,6 +218,11 @@
             "description": "L'agent propose un nouveau créneau",
             "accept": "Accepter la proposition"
         },
+        "actions":{
+            "accept": "Accepter",
+            "reject": "Refuser",
+            "messaging": "Messagerie"
+        },
         "defaultAppointment": {
             "time": "14h00",
             "property": "Appartement à définir",
@@ -232,6 +237,10 @@
             "confirmed": "Confirmés",
             "rejected": "Refusés",
             "proposition": "Propositions envoyées"
+        },
+        "buttons":{
+            "propose": "Proposer",
+            "messaging": "Message"
         }
     },
     "rdvCard": {
@@ -241,8 +250,9 @@
             "pending": "en attente",
             "confirmed": "confirmé",
             "rejected": "refusé",
-            "proposal": "proposition"
+            "proposed": "proposé"
         },
+        "messagePro":"Message du prospect:",
         "actions": {
             "confirm": "Confirmer",
             "reject": "Refuser",
@@ -409,5 +419,13 @@
             "message3": "Rappel: vos annonces expirent bientôt",
             "message4": "Oui, pouvez-vous me donner plus de détails ?"
         }
+    },
+    "proposeModal": {
+        "title": "Proposer un nouveau créneau",
+        "chooseDate": "Choisir une date",
+        "chooseTime": "Choisir une heure",
+        "cancel":"Annuler",
+        "sending":"Envoi en cours...",
+        "confirm": "Confirmer"
     }
 }

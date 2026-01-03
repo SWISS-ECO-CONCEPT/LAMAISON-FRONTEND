@@ -31,7 +31,7 @@ const RdvCard: React.FC<RdvCardProps> = ({ date, heure, bien, PROSPECT, AGENT, s
       : status === "rejected"
         ? t('rdvCard.status.rejected')
         : status === "proposed"
-          ? (t('rdvCard.status.proposed') === 'rdvCard.status.proposed' ? 'Proposé' : t('rdvCard.status.proposed'))
+          ? t('rdvCard.status.proposed')
           : t('rdvCard.status.pending');
   
   return (
@@ -63,7 +63,7 @@ const RdvCard: React.FC<RdvCardProps> = ({ date, heure, bien, PROSPECT, AGENT, s
         {/* Message du prospect (visible pour l'agent) */}
         {message && (
           <div className="mt-2 p-2 bg-blue-50 border-l-4 border-blue-400 rounded">
-            <p className="flex items-center gap-1 font-semibold text-blue-800 text-sm"><MessageCircle className="text-blue-800 w-4 h-4 "/> Message du prospect:</p>
+            <p className="flex items-center gap-1 font-semibold text-blue-800 text-sm"><MessageCircle className="text-blue-800 w-4 h-4 "/> {t('rdvCard.messagePro')}</p>
             <p className="text-xs text-blue-700 mt-1 italic">{message}</p>
           </div>
         )}
