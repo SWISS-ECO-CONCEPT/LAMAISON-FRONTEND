@@ -18,7 +18,7 @@ const Profile = () => {
 
   // Initialisation avec Clerk
   const [formData, setFormData] = useState<UserProfile>({
-    firstname: (user?.unsafeMetadata?.firstName as string) || "",
+    firstname: (user?.unsafeMetadata?.firstname as string) || "",
     email: user?.emailAddresses?.[0]?.emailAddress || "",
     phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
     role: (user?.unsafeMetadata?.role as "AGENT" | "PROSPECT") || "PROSPECT",
