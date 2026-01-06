@@ -73,6 +73,7 @@
     },
     "rdvModal": {
         "pdrRDV": "Prendre rendez-vous avec",
+        "phone":"Téléphone",
         "nom": "Nom",
         "prenom": "Prénom",
         "email": "email",
@@ -119,6 +120,7 @@
         "entrPre": "Entrez votre prénom",
         "entrEmail": "Entrez votre email",
         "creeMdp": "Créez un mot de passe",
+        "phone": "Entrez votre numéro de téléphone",
         "jeSuis": "Je suis :",
         "choisirR": "-- Sélectionnez votre rôle --",
         "prospect": "Particulier (Acheteur/Vendeur)",
