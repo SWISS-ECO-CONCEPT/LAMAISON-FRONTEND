@@ -30,11 +30,14 @@ const Profile = () => {
 
   useEffect(() => {
     if (user) {
+      // console.log("User data:", user);
+      // console.log("Phone numbers:", user.phoneNumbers);
+      // console.log("Unsafe metadata:", user.unsafeMetadata);
       setFormData({
         firstname: (user.unsafeMetadata.firstname as string) || "",
         email: user.emailAddresses?.[0]?.emailAddress || "",
-        phone: user.phoneNumbers?.[0]?.phoneNumber || "",
-        role: (user.unsafeMetadata?.role as "AGENT" | "PROSPECT") || "PROSPECT",
+        phone: (user.unsafeMetadata.phone as string) || "",
+        role: (user.unsafeMetadata?.role as "AGENT" | "PROSPECT"),
         avatar: user.imageUrl || "",
       });
       setPreview(user.imageUrl || null);
@@ -65,8 +68,8 @@ const Profile = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Ici tu peux envoyer formData vers ton backend ou Clerk API
-    console.log("Profil mis à jour :", formData);
-    alert(t('profile.updateSuccess'));
+      console.log("Profil mis à jour :", formData);
+      alert(t('profile.updateSuccess'));
   };
 
   return (
@@ -106,6 +109,9 @@ const Profile = () => {
               : t('profile.role.user')}
           </p>
           <p className="text-gray-500">{formData.email}</p>
+          {/* {formData.phone && (
+            <p className="text-gray-500">{formData.phone}</p>
+          )} */}
         </div>
       </div>
 

@@ -12,6 +12,7 @@ const schemaSignUp = yup.object().shape({
   email: yup.string().email("Email invalide").required("Email requis"),
   password: yup.string().min(6, "6 caractères minimum").required("Mot de passe requis"),
   role: yup.string().oneOf(["PROSPECT", "AGENT"], "Choisir un rôle").required("Rôle requis"),
+  phone: yup.string().required("Téléphone requis"),
 });
 
 const Inscription = () => {
@@ -33,6 +34,7 @@ const Inscription = () => {
     email: "",
     password: "",
     role: "",
+    phone: "",
   };
 
   // Formik setup
@@ -68,7 +70,8 @@ const Inscription = () => {
         password: values.password,
         unsafeMetadata: {
           firstname: values.firstname,
-          role: values.role
+          role: values.role,
+          phone: values.phone
         }, // rôle custom stocké côté Clerk
       });
 
@@ -190,6 +193,26 @@ const Inscription = () => {
           </div>
           {formik.errors.password && formik.touched.password && (
             <p className="text-red-500 text-sm mt-1">{formik.errors.password}</p>
+          )}
+        </div>
+
+        {/*Téléphone*/}
+        <div>
+          <label htmlFor="firstname" className="block text-sm font-medium text-gray-700 mb-1">
+            {t("rdvModal.phone")} <span className="text-gray-400">*</span>
+          </label>
+          <input
+            id="phone"
+            type="text"
+            name="phone"
+            value={formik.values.phone}
+            onChange={formik.handleChange}
+            onBlur={formik.handleBlur}
+            placeholder={t("inscription.phone")}
+            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+          />
+          {formik.errors.phone && formik.touched.phone && (
+            <p className="text-red-500 text-sm mt-1">{formik.errors.phone}</p>
           )}
         </div>
 

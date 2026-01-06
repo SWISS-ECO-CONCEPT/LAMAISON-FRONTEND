@@ -7,6 +7,7 @@ type UserShape = {
   firstname?: string;
   email?: string;
   role?: string;
+  phone?: string;
   // ajoute d'autres champs que tu utilises...
 } | null;
 

@@ -73,6 +73,7 @@
     },
     "rdvModal": {
         "pdrRDV": "Book an appointment with",
+        "phone":"Téléphone",
         "nom": "Surname",
         "prenom": "First name",
         "email": "email",
@@ -118,6 +119,7 @@
         "cree": "Create an account",
         "entrPre": "Enter your firstname",
         "entrEmail": "Enter your email",
+        "phone": "Enter your phone number",
         "creeMdp": "Create a password",
         "jeSuis": "I am :",
         "choisirR": "-- Select your role --",
