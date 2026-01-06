@@ -73,7 +73,7 @@
     },
     "rdvModal": {
         "pdrRDV": "Book an appointment with",
-        "phone":"Téléphone",
+        "phone":"Phone",
         "nom": "Surname",
         "prenom": "First name",
         "email": "email",
