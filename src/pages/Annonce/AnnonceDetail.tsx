@@ -4,7 +4,7 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 import OwnerCard from '../../components/OwnerCard'
 import RdvModal from '../../components/RdvModal'
-import { FaBed, FaRulerCombined, FaShower } from 'react-icons/fa'
+import { FaBed, FaRulerCombined, FaShower, FaEye } from 'react-icons/fa'
 import { t } from 'i18next'
 // import DateSejourPicker, { type DatesSejour } from '../../components/DateSejourPicker'
 
@@ -26,6 +26,7 @@ type Annonce = {
   chambres?: number | null
   douches?: number | null
   images: string[]
+  vues?: number
   proprietaire?: {
     id: number
     firstname: string
@@ -67,7 +68,16 @@ const AnnonceDetail: React.FC = () => {
           throw new Error(text || `Erreur serveur (${res.status})`)
         }
         const data: Annonce = await res.json()
-        if (!cancelled) setAnnonce(data)
+        if (!cancelled) {
+          setAnnonce(data)
+          // Incrémente le nombre de vues côté backend (erreurs silencieuses)
+          fetch(`${API_BASE}/annonces/${id}/view`, {
+            method: 'POST',
+            credentials: 'include',
+          }).catch((e) => {
+            console.warn('Impossible d’incrémenter les vues :', e)
+          })
+        }
       } catch (e: unknown) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e))
       } finally {
@@ -144,8 +154,16 @@ const AnnonceDetail: React.FC = () => {
         </Swiper>
 
         <h3 className="text-xl sm:text-2xl font-bold text-gray-800">{a.titre}</h3>
-        <p className="text-gray-600 text-sm sm:text-base">{a.ville}</p>
-        <p className="text-green-600 font-bold text-base sm:text-lg">{a.prix} fcfa</p>
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <p className="text-gray-600 text-sm sm:text-base">{a.ville}</p>
+            <p className="text-green-600 font-bold text-base sm:text-lg">{a.prix} fcfa</p>
+          </div>
+          <div className="flex items-center gap-1 text-gray-500 text-sm">
+            <FaEye />
+            <span>{a.vues ?? 0}</span>
+          </div>
+        </div>
 
         {/* Caractéristiques */}
         <div className="mt-4 text-sm text-gray-700 grid grid-cols-2 sm:grid-cols-3 gap-y-2">
