@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FaMapMarkerAlt, FaBed, FaShower, FaRulerCombined, FaHeart, FaRegHeart } from 'react-icons/fa'
+import { FaMapMarkerAlt, FaBed, FaShower, FaRulerCombined, FaHeart, FaRegHeart, FaEye } from 'react-icons/fa'
 import { Link, useParams } from 'react-router-dom'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
@@ -22,10 +22,10 @@ const toAbsoluteUrl = (u: string) => {
 }
 
 interface FavoriResponse {
-  id: number;
-  annonceId: number;
-  userId: number;
-  createdAt: Date;
+  id: number
+  annonceId: number
+  userId: number
+  createdAt: Date
 }
 
 // Type des props reçues par la carte
@@ -38,6 +38,7 @@ type Props = {
   chambres: number
   douches: number
   surface: number
+  vues?: number
 }
 
 const AnnonceCard: React.FC<Props> = ({
@@ -49,6 +50,7 @@ const AnnonceCard: React.FC<Props> = ({
   chambres,
   douches,
   surface,
+  vues,
 }) => {
   const { lng } = useParams<{ lng: string }>();
   const { isSignedIn, getToken } = useAuth()
@@ -203,15 +205,21 @@ const AnnonceCard: React.FC<Props> = ({
         </p>
 
         {/* Caractéristiques */}
-        <div className="flex justify-between text-xs sm:text-sm text-gray-600 border-t pt-3">
-          <div className="flex items-center gap-1">
-            <FaBed className="text-gray-500" /> {chambres} {t('annonceCard.ch')}
+        <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600 border-t pt-3">
+          <div className="flex gap-4">
+            <div className="flex items-center gap-1">
+              <FaBed className="text-gray-500" /> {chambres} {t('annonceCard.ch')}
+            </div>
+            <div className="flex items-center gap-1">
+              <FaShower className="text-gray-500" /> {douches} {t('annonceCard.sdb')}
+            </div>
+            <div className="flex items-center gap-1">
+              <FaRulerCombined className="text-gray-500" /> {surface} m²
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <FaShower className="text-gray-500" /> {douches} {t('annonceCard.sdb')}
-          </div>
-          <div className="flex items-center gap-1">
-            <FaRulerCombined className="text-gray-500" /> {surface} m²
+          <div className="flex items-center gap-1 text-gray-500">
+            <FaEye />
+            <span>{vues ?? 0}</span>
           </div>
         </div>
 

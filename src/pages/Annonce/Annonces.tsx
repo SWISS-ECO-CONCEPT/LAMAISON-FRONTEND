@@ -13,6 +13,7 @@ type Annonce = {
   surface?: number | null
   chambres?: number | null
   douches?: number | null
+  vues?: number | null
 }
 
 const API_BASE = 'http://localhost:5000'
@@ -68,6 +69,7 @@ const Annonces: React.FC = () => {
                             chambres={a.chambres ?? 0}
                             douches={a.douches ?? 0}
                             surface={a.surface ?? 0}
+                            vues={a.vues ?? 0}
                         />
                     ))}
                 </div>
