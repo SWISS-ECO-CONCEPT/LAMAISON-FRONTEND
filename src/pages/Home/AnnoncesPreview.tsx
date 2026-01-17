@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import AnnonceCard from '../../components/AnnonceCard'
+import { type SearchFilters } from '../../components/SearchBar'
 import { t } from 'i18next'
 
 type Annonce = {
@@ -17,12 +18,32 @@ type Annonce = {
 
 const API_BASE = 'http://localhost:5000'
 
-const AnnoncesPreview: React.FC = () => {
+interface AnnoncesPreviewProps {
+  filters?: SearchFilters
+}
+
+const AnnoncesPreview: React.FC<AnnoncesPreviewProps> = ({ filters }) => {
   const [items, setItems] = useState<Annonce[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
- 
 
+  // Fonction pour construire l'URL avec les paramètres de recherche
+  const buildSearchUrl = (f: SearchFilters): string => {
+    const params = new URLSearchParams()
+    if (f.search) params.append('search', f.search)
+    if (f.type) params.append('type', f.type)
+    if (f.ville) params.append('ville', f.ville)
+    if (f.projet) params.append('projet', f.projet)
+    if (f.prixMin !== undefined) params.append('prixMin', f.prixMin.toString())
+    if (f.prixMax !== undefined) params.append('prixMax', f.prixMax.toString())
+    if (f.surfaceMin !== undefined) params.append('surfaceMin', f.surfaceMin.toString())
+    if (f.surfaceMax !== undefined) params.append('surfaceMax', f.surfaceMax.toString())
+    if (f.chambres !== undefined) params.append('chambres', f.chambres.toString())
+    if (f.douches !== undefined) params.append('douches', f.douches.toString())
+
+    const queryString = params.toString()
+    return queryString ? `${API_BASE}/annonces?${queryString}` : `${API_BASE}/annonces`
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -30,7 +51,8 @@ const AnnoncesPreview: React.FC = () => {
       setLoading(true)
       setError(null)
       try {
-        const res = await fetch(`${API_BASE}/annonces`, { credentials: 'include' })
+        const url = filters ? buildSearchUrl(filters) : `${API_BASE}/annonces`
+        const res = await fetch(url, { credentials: 'include' })
         if (!res.ok) {
           const text = await res.text()
           throw new Error(text || `Erreur serveur (${res.status})`)
@@ -45,7 +67,8 @@ const AnnoncesPreview: React.FC = () => {
     }
     run()
     return () => { cancelled = true }
-  }, [])
+  }, [filters])
+
   return (
     <section className="py-8 px-4 max-w-6xl mx-auto">
       <h2 className="text-2xl font-semibold mb-6 text-center">{t('annoncepreview.recent')}</h2>
@@ -53,24 +76,32 @@ const AnnoncesPreview: React.FC = () => {
       {loading && <p className="text-center text-gray-600">{t('common.loading')}</p>}
       {error && <p className="text-center text-red-500">{error}</p>}
 
-      {/* Grille responsive : 1 colonne sur mobile, 2 sur petits écrans, 3 sur grands */}
       {!loading && !error && (
-        <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-          {items.slice(0, 6).map((a) => (
-            <AnnonceCard
-              key={a.id} // toujours ajouter une key ici
-              id={a.id}
-              titre={a.titre}
-              ville={a.ville}
-              prix={a.prix}
-              images={a.images}
-              chambres={a.chambres ?? 0}
-              douches={a.douches ?? 0}
-              surface={a.surface ?? 0}
-              vues={a.vues ?? 0}
-            />
-          ))}
-        </div>
+        <>
+          {items.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">Aucune annonce ne correspond à votre recherche</p>
+              <p className="text-gray-500 mt-2">Essayez de modifier vos filtres ou votre recherche</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
+              {items.slice(0, 6).map((a) => (
+                <AnnonceCard
+                  key={a.id}
+                  id={a.id}
+                  titre={a.titre}
+                  ville={a.ville}
+                  prix={a.prix}
+                  images={a.images}
+                  chambres={a.chambres ?? 0}
+                  douches={a.douches ?? 0}
+                  surface={a.surface ?? 0}
+                  vues={a.vues ?? 0}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </section>
   )

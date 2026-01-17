@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useTranslation } from "react-i18next";
-import SearchBar from "../SearchBar";
+import SearchBar, { type SearchFilters } from "../SearchBar";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination } from "swiper/modules";
 import { FaBed, FaRuler, FaShower, FaEdit, FaTrash, FaMapMarkerAlt } from "react-icons/fa";
@@ -37,9 +37,11 @@ const AnnonceList: React.FC = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
+  const [filteredAnnonces, setFilteredAnnonces] = useState<Annonce[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({});
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<{
     titre: string;
@@ -74,7 +76,10 @@ const AnnonceList: React.FC = () => {
           throw new Error(text || `Erreur serveur (${res.status})`);
         }
         const data = await res.json();
-        if (!cancelled) setAnnonces(Array.isArray(data) ? data : []);
+        if (!cancelled) {
+          setAnnonces(Array.isArray(data) ? data : []);
+          setFilteredAnnonces(Array.isArray(data) ? data : []);
+        }
       } catch (e: unknown) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       } finally {
@@ -84,6 +89,55 @@ const AnnonceList: React.FC = () => {
     run();
     return () => { cancelled = true };
   }, [user?.id]);
+
+  // Filtrer les annonces en fonction des critères de recherche
+  useEffect(() => {
+    let filtered = [...annonces];
+    
+    if (searchFilters.search) {
+      filtered = filtered.filter(annonce => 
+        annonce.titre.toLowerCase().includes(searchFilters.search!.toLowerCase()) ||
+        annonce.description?.toLowerCase().includes(searchFilters.search!.toLowerCase()) ||
+        annonce.ville?.toLowerCase().includes(searchFilters.search!.toLowerCase())
+      );
+    }
+    
+    if (searchFilters.type) {
+      filtered = filtered.filter(annonce => annonce.type === searchFilters.type);
+    }
+    
+    if (searchFilters.ville) {
+      filtered = filtered.filter(annonce => 
+        annonce.ville?.toLowerCase().includes(searchFilters.ville!.toLowerCase())
+      );
+    }
+    
+    if (searchFilters.prixMin !== undefined) {
+      filtered = filtered.filter(annonce => annonce.prix >= searchFilters.prixMin!);
+    }
+    
+    if (searchFilters.prixMax !== undefined) {
+      filtered = filtered.filter(annonce => annonce.prix <= searchFilters.prixMax!);
+    }
+    
+    if (searchFilters.surfaceMin !== undefined) {
+      filtered = filtered.filter(annonce => annonce.surface && annonce.surface >= searchFilters.surfaceMin!);
+    }
+    
+    if (searchFilters.surfaceMax !== undefined) {
+      filtered = filtered.filter(annonce => annonce.surface && annonce.surface <= searchFilters.surfaceMax!);
+    }
+    
+    if (searchFilters.chambres !== undefined) {
+      filtered = filtered.filter(annonce => annonce.chambres && annonce.chambres >= searchFilters.chambres!);
+    }
+    
+    if (searchFilters.douches !== undefined) {
+      filtered = filtered.filter(annonce => annonce.douches && annonce.douches >= searchFilters.douches!);
+    }
+    
+    setFilteredAnnonces(filtered);
+  }, [annonces, searchFilters]);
 
   const startEdit = (a: Annonce) => {
     setEditingId(a.id);
@@ -178,184 +232,195 @@ const AnnonceList: React.FC = () => {
 
       {/* SearchBar bien visible */}
       <div className="w-full max-w-3xl">
-        <SearchBar />
+        <SearchBar onSearch={setSearchFilters} />
       </div>
 
       {/* Liste des annonces */}
       {loading && <div className="text-gray-600">{t('annonceList.loading')}</div>}
       {error && <div className="text-red-600 bg-red-50 p-3 rounded border border-red-200">❌ {error}</div>}
       {success && <div className="text-green-600 bg-green-50 p-3 rounded border border-green-200">{success}</div>}
-      <ol className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
-        {annonces.map((annonce) => (
-          <li
-            key={annonce.id}
-            className={`border rounded-lg shadow-md bg-white overflow-hidden flex flex-col transition ${editingId === annonce.id ? 'ring-2 ring-blue-500' : ''}`}
-          >
-            {editingId === annonce.id ? (
-              /* Mode édition : pas de carrousel */
-              <div className="p-6 space-y-4 flex-1">
-                <h3 className="text-lg font-bold text-blue-600">{t('annonceList.actions.edit')}</h3>
+      {!loading && !error && (
+        <>
+          {filteredAnnonces.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-600 text-lg">Aucune annonce ne correspond à votre recherche</p>
+              <p className="text-gray-500 mt-2">Essayez de modifier vos filtres ou votre recherche</p>
+            </div>
+          ) : (
+            <ol className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
+              {filteredAnnonces.map((annonce) => (
+                <li
+                  key={annonce.id}
+                  className={`border rounded-lg shadow-md bg-white overflow-hidden flex flex-col transition ${editingId === annonce.id ? 'ring-2 ring-blue-500' : ''}`}
+                >
+                {editingId === annonce.id ? (
+                  /* Mode édition : pas de carrousel */
+                  <div className="p-6 space-y-4 flex-1">
+                    <h3 className="text-lg font-bold text-blue-600">{t('annonceList.actions.edit')}</h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {/* Titre */}
-                  <div className="md:col-span-2">
-                    <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.title')}</label>
-                    <input
-                      className="border px-2 py-1 rounded w-full text-sm"
-                      value={editData.titre}
-                      onChange={(e) => setEditData((p) => ({ ...p, titre: e.target.value }))}
-                      placeholder={t('annonceList.editPlaceholders.title')}
-                    />
-                  </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {/* Titre */}
+                      <div className="md:col-span-2">
+                        <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.title')}</label>
+                        <input
+                          className="border px-2 py-1 rounded w-full text-sm"
+                          value={editData.titre}
+                          onChange={(e) => setEditData((p) => ({ ...p, titre: e.target.value }))}
+                          placeholder={t('annonceList.editPlaceholders.title')}
+                        />
+                      </div>
 
-                  {/* Description */}
-                  <div className="md:col-span-2">
-                    <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.description')}</label>
-                    <textarea
-                      className="border px-2 py-1 rounded w-full text-sm resize-none"
-                      rows={2}
-                      value={editData.description}
-                      onChange={(e) => setEditData((p) => ({ ...p, description: e.target.value }))}
-                      placeholder={t('annonceList.editPlaceholders.description')}
-                    />
-                  </div>
+                      {/* Description */}
+                      <div className="md:col-span-2">
+                        <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.description')}</label>
+                        <textarea
+                          className="border px-2 py-1 rounded w-full text-sm resize-none"
+                          rows={2}
+                          value={editData.description}
+                          onChange={(e) => setEditData((p) => ({ ...p, description: e.target.value }))}
+                          placeholder={t('annonceList.editPlaceholders.description')}
+                        />
+                      </div>
 
-                  {/* Prix */}
-                  <div>
-                    <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.price')}</label>
-                    <input
-                      className="border px-2 py-1 rounded w-full text-sm"
-                      type="number"
-                      value={editData.prix}
-                      onChange={(e) => setEditData((p) => ({ ...p, prix: e.target.value }))}
-                      placeholder={t('annonceList.editPlaceholders.price')}
-                    />
-                  </div>
+                      {/* Prix */}
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.price')}</label>
+                        <input
+                          className="border px-2 py-1 rounded w-full text-sm"
+                          type="number"
+                          value={editData.prix}
+                          onChange={(e) => setEditData((p) => ({ ...p, prix: e.target.value }))}
+                          placeholder={t('annonceList.editPlaceholders.price')}
+                        />
+                      </div>
 
-                  {/* Ville */}
-                  <div>
-                    <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.city')}</label>
-                    <input
-                      className="border px-2 py-1 rounded w-full text-sm"
-                      value={editData.ville}
-                      onChange={(e) => setEditData((p) => ({ ...p, ville: e.target.value }))}
-                      placeholder={t('annonceList.editPlaceholders.city')}
-                    />
-                  </div>
+                      {/* Ville */}
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.city')}</label>
+                        <input
+                          className="border px-2 py-1 rounded w-full text-sm"
+                          value={editData.ville}
+                          onChange={(e) => setEditData((p) => ({ ...p, ville: e.target.value }))}
+                          placeholder={t('annonceList.editPlaceholders.city')}
+                        />
+                      </div>
 
-                  {/* Type */}
-                  <div>
-                    <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.type')}</label>
-                    <input
-                      className="border px-2 py-1 rounded w-full text-sm"
-                      value={editData.type}
-                      onChange={(e) => setEditData((p) => ({ ...p, type: e.target.value }))}
-                      placeholder={t('annonceList.editPlaceholders.type')}
-                    />
-                  </div>
+                      {/* Type */}
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.type')}</label>
+                        <input
+                          className="border px-2 py-1 rounded w-full text-sm"
+                          value={editData.type}
+                          onChange={(e) => setEditData((p) => ({ ...p, type: e.target.value }))}
+                          placeholder={t('annonceList.editPlaceholders.type')}
+                        />
+                      </div>
 
-                  {/* Surface */}
-                  <div>
-                    <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.surface')}</label>
-                    <input
-                      className="border px-2 py-1 rounded w-full text-sm"
-                      type="number"
-                      value={editData.surface}
-                      onChange={(e) => setEditData((p) => ({ ...p, surface: e.target.value }))}
-                      placeholder={t('annonceList.editPlaceholders.surface')}
-                    />
-                  </div>
+                      {/* Surface */}
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.surface')}</label>
+                        <input
+                          className="border px-2 py-1 rounded w-full text-sm"
+                          type="number"
+                          value={editData.surface}
+                          onChange={(e) => setEditData((p) => ({ ...p, surface: e.target.value }))}
+                          placeholder={t('annonceList.editPlaceholders.surface')}
+                        />
+                      </div>
 
-                  {/* Chambres */}
-                  <div>
-                    <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.bedrooms')}</label>
-                    <input
-                      className="border px-2 py-1 rounded w-full text-sm"
-                      type="number"
-                      value={editData.chambres}
-                      onChange={(e) => setEditData((p) => ({ ...p, chambres: e.target.value }))}
-                      placeholder={t('annonceList.editPlaceholders.bedrooms')}
-                    />
-                  </div>
+                      {/* Chambres */}
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.bedrooms')}</label>
+                        <input
+                          className="border px-2 py-1 rounded w-full text-sm"
+                          type="number"
+                          value={editData.chambres}
+                          onChange={(e) => setEditData((p) => ({ ...p, chambres: e.target.value }))}
+                          placeholder={t('annonceList.editPlaceholders.bedrooms')}
+                        />
+                      </div>
 
-                  {/* Douches */}
-                  <div>
-                    <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.showers')}</label>
-                    <input
-                      className="border px-2 py-1 rounded w-full text-sm"
-                      type="number"
-                      value={editData.douches}
-                      onChange={(e) => setEditData((p) => ({ ...p, douches: e.target.value }))}
-                      placeholder={t('annonceList.editPlaceholders.showers')}
-                    />
-                  </div>
-                </div>
-
-                {/* Boutons */}
-                <div className="flex gap-2 pt-3 border-t">
-                  <button onClick={() => saveEdit(annonce.id)} className="flex-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium">
-                    ✓ {t('annonceList.actions.save')}
-                  </button>
-                  <button onClick={cancelEdit} className="flex-1 px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm font-medium">
-                    ✕ {t('annonceList.actions.cancel')}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* Mode affichage */
-              <>
-                {/* Carrousel d'images (responsive) */}
-                <Swiper spaceBetween={10} slidesPerView={1}
-                  modules={[Navigation, Pagination]}
-                  navigation
-                  pagination={{ clickable: true }}
-                  loop
-                  className="w-full h-full">
-                  {annonce.images.map((img: string, index: number) => (
-                    <SwiperSlide key={index}>
-                      <img
-                        src={toAbsoluteUrl(img)}
-                        alt={`${annonce.titre}-${index}`}
-                        className="w-full h-56 sm:h-64 md:h-72 object-cover"
-                      />
-                    </SwiperSlide>
-                  ))}
-                </Swiper>
-
-                {/* Infos + Actions */}
-                <div className="p-4 flex flex-col justify-between flex-1">
-                  <div>
-                    <h2 className="font-semibold text-lg">{annonce.titre}</h2>
-                    {annonce.description && <p className="text-sm text-gray-600 line-clamp-2">{annonce.description}</p>}
-                    <p className="text-sm text-gray-500">{annonce.type}</p>
-                    <p className="text-gray-700 font-medium">{annonce.prix} FCFA</p>
-                    {annonce.ville && <p className="text-xs text-gray-500 flex items-center gap-1">  <FaMapMarkerAlt className="text-red-500" />{annonce.ville}</p>}
-                    <div className="text-xs text-gray-500 flex gap-4 mt-1">
-                      {annonce.surface && <span className="flex items-center gap-1"><FaRuler className="text-gray-600" />{annonce.surface}m²</span>}
-                      {annonce.chambres && <span className="flex items-center gap-1"><FaBed className="text-gray-600" />{annonce.chambres} ch.</span>}
-                      {annonce.douches && <span className="flex items-center gap-1"><FaShower className="text-gray-600" />{annonce.douches}</span>}
+                      {/* Douches */}
+                      <div>
+                        <label className="text-xs font-semibold text-gray-700">{t('annonceList.editPlaceholders.showers')}</label>
+                        <input
+                          className="border px-2 py-1 rounded w-full text-sm"
+                          type="number"
+                          value={editData.douches}
+                          onChange={(e) => setEditData((p) => ({ ...p, douches: e.target.value }))}
+                          placeholder={t('annonceList.editPlaceholders.showers')}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Actions agent */}
-                  {role === "AGENT" && (
-                    <div className="flex gap-2 mt-4">
-                      <button onClick={() => startEdit(annonce)}
-                        className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm font-medium flex items-center justify-center gap-2">
-                        <FaEdit /> {t('annonceList.actions.edit')}
+                    {/* Boutons */}
+                    <div className="flex gap-2 pt-3 border-t">
+                      <button onClick={() => saveEdit(annonce.id)} className="flex-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 text-sm font-medium">
+                        ✓ {t('annonceList.actions.save')}
                       </button>
-                      <button onClick={() => deleteAnnonce(annonce.id)}
-                        className="flex-1 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm font-medium flex items-center justify-center gap-2">
-                        <FaTrash /> {t('annonceList.actions.delete')}
+                      <button onClick={cancelEdit} className="flex-1 px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 text-sm font-medium">
+                        ✕ {t('annonceList.actions.cancel')}
                       </button>
                     </div>
-                  )}
-                </div>
-              </>
-            )}
+                  </div>
+                ) : (
+                  /* Mode affichage */
+                  <>
+                    {/* Carrousel d'images (responsive) */}
+                    <Swiper spaceBetween={10} slidesPerView={1}
+                      modules={[Navigation, Pagination]}
+                      navigation
+                      pagination={{ clickable: true }}
+                      loop
+                      className="w-full h-full">
+                      {annonce.images.map((img: string, index: number) => (
+                        <SwiperSlide key={index}>
+                          <img
+                            src={toAbsoluteUrl(img)}
+                            alt={`${annonce.titre}-${index}`}
+                            className="w-full h-56 sm:h-64 md:h-72 object-cover"
+                          />
+                        </SwiperSlide>
+                      ))}
+                    </Swiper>
+
+                    {/* Infos + Actions */}
+                    <div className="p-4 flex flex-col justify-between flex-1">
+                      <div>
+                        <h2 className="font-semibold text-lg">{annonce.titre}</h2>
+                        {annonce.description && <p className="text-sm text-gray-600 line-clamp-2">{annonce.description}</p>}
+                        <p className="text-sm text-gray-500">{annonce.type}</p>
+                        <p className="text-gray-700 font-medium">{annonce.prix} FCFA</p>
+                        {annonce.ville && <p className="text-xs text-gray-500 flex items-center gap-1">  <FaMapMarkerAlt className="text-red-500" />{annonce.ville}</p>}
+                        <div className="text-xs text-gray-500 flex gap-4 mt-1">
+                          {annonce.surface && <span className="flex items-center gap-1"><FaRuler className="text-gray-600" />{annonce.surface}m²</span>}
+                          {annonce.chambres && <span className="flex items-center gap-1"><FaBed className="text-gray-600" />{annonce.chambres} ch.</span>}
+                          {annonce.douches && <span className="flex items-center gap-1"><FaShower className="text-gray-600" />{annonce.douches}</span>}
+                        </div>
+                      </div>
+
+                      {/* Actions agent */}
+                      {role === "AGENT" && (
+                        <div className="flex gap-2 mt-4">
+                          <button onClick={() => startEdit(annonce)}
+                            className="flex-1 px-3 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 text-sm font-medium flex items-center justify-center gap-2">
+                            <FaEdit /> {t('annonceList.actions.edit')}
+                          </button>
+                          <button onClick={() => deleteAnnonce(annonce.id)}
+                            className="flex-1 px-3 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 text-sm font-medium flex items-center justify-center gap-2">
+                            <FaTrash /> {t('annonceList.actions.delete')}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
           </li>
         ))}
-      </ol>
+            </ol>
+          )}
+        </>
+      )}
     </div>
   );
 };

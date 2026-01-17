@@ -1,11 +1,13 @@
-import React from 'react'
-import SearchBar from '../../components/SearchBar'
+import React, { useState } from 'react'
+import SearchBar, { type SearchFilters } from '../../components/SearchBar'
 import HeroSection from './HeroSection'
 import AnnoncesPreview from './AnnoncesPreview'
 
 const Home: React.FC = () => {
+  const [searchFilters, setSearchFilters] = useState<SearchFilters>({})
+
   return (
-    
+
     // Conteneur principal en colonne avec espacement vertical entre les sections
     <div className="flex flex-col gap-6">
       {/* Section d'en-tête avec Hero */}
@@ -13,11 +15,11 @@ const Home: React.FC = () => {
 
       {/* SearchBar complète avec filtres intégrés */}
       <div className="px-4 md:px-0">
-        <SearchBar />
+        <SearchBar onSearch={setSearchFilters} />
       </div>
 
       {/* Aperçu des annonces en bas */}
-      <AnnoncesPreview />
+      <AnnoncesPreview filters={searchFilters} />
     </div>
   )
 }
