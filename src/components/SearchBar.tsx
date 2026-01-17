@@ -2,38 +2,53 @@ import { t } from 'i18next';
 import React, { useState } from 'react';
 import { FaFilter, FaSearch, FaTimes } from 'react-icons/fa';
 
-const SearchBar: React.FC = () => {
+export interface SearchFilters {
+  search?: string;
+  type?: string;
+  prixMin?: number;
+  prixMax?: number;
+  surfaceMin?: number;
+  surfaceMax?: number;
+  chambres?: number;
+  douches?: number;
+  ville?: string;
+  projet?: string;
+}
+
+interface SearchBarProps {
+  onSearch?: (filters: SearchFilters) => void;
+}
+
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   // État pour gérer l'ouverture/fermeture du panneau de filtres
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
-  // État pour stocker ce que l'utilisateur tape dans la recherche
-  const [searchQuery] = useState('');
-
   // État pour tous nos filtres avec des valeurs par défaut
   const [filters, setFilters] = useState({
-
-    projet: '',       // Vide par défaut (l'utilisateur doit choisir)
+    search: '',       // Recherche textuelle
+    projet: '',       // Vide par défaut (achat/location)
     typeBien: '',     // Vide par défaut
     budget: '',       // Vide par défaut
+    ville: '',        // Ville
     surface: { min: '', max: '' },  // Surface minimum et maximum
     chambres: '',     // Nombre de chambres
+    douches: '',      // Nombre de douches
     options: {        // Options cochables
-      piscine: false,   // Non cochée par défaut
-      terrasse: false,  // Non cochée par défaut
-      jardin: false,    // Non cochée par défaut
-      cheminée: false,  // Non cochée par défaut
+      piscine: false,
+      terrasse: false,
+      jardin: false,
+      cheminée: false,
       parking: false,
       climatisation: false,
       security: false,
       guard: false
     }
-
   });
 
   // Options pour le menu déroulant "Projet"
   const projets = [
-    { value: 'achat', label: t('searchbar.achat') },      // Option 1
-    { value: 'location', label: t('searchbar.loc') }  // Option 2
+    { value: 'achat', label: t('searchbar.achat') },
+    { value: 'location', label: t('searchbar.loc') }
   ];
 
   // Options pour le menu déroulant "Type de bien"
@@ -47,19 +62,85 @@ const SearchBar: React.FC = () => {
 
   // Options pour le menu déroulant "Budget"
   const budgets = [
-    { value: '<10000000', label: '<10M FCFA' },
-    { value: '25000000-49000000', label: '25M-49M FCFA' },
-    { value: '>=50000000', label: '>=50M FCFA' }
+    { value: '<10000000', label: '<10M FCFA', min: undefined, max: 10000000 },
+    { value: '25000000-49000000', label: '25M-49M FCFA', min: 25000000, max: 49000000 },
+    { value: '>=50000000', label: '>=50M FCFA', min: 50000000, max: undefined }
   ];
+
+  // Fonction pour convertir les filtres internes en paramètres API
+  const buildSearchParams = (): SearchFilters => {
+    const params: SearchFilters = {};
+
+    // Recherche textuelle
+    if (filters.search.trim()) {
+      params.search = filters.search.trim();
+    }
+
+    // Projet
+    if (filters.projet) {
+      params.projet = filters.projet;
+    }
+
+    // Type de bien
+    if (filters.typeBien) {
+      params.type = filters.typeBien;
+    }
+
+    // Ville
+    if (filters.ville.trim()) {
+      params.ville = filters.ville.trim();
+    }
+
+    // Budget (décomposer la plage)
+    if (filters.budget) {
+      const budgetOption = budgets.find(b => b.value === filters.budget);
+      if (budgetOption) {
+        if (budgetOption.min !== undefined) params.prixMin = budgetOption.min;
+        if (budgetOption.max !== undefined) params.prixMax = budgetOption.max;
+      }
+    }
+
+    // Surface
+    if (filters.surface.min) {
+      params.surfaceMin = Number(filters.surface.min);
+    }
+    if (filters.surface.max) {
+      params.surfaceMax = Number(filters.surface.max);
+    }
+
+    // Chambres
+    if (filters.chambres) {
+      const chambresValue = filters.chambres === '5+' ? 5 : Number(filters.chambres);
+      params.chambres = chambresValue;
+    }
+
+    // Douches
+    if (filters.douches) {
+      const douchesValue = filters.douches === '5+' ? 5 : Number(filters.douches);
+      params.douches = douchesValue;
+    }
+
+    return params;
+  };
 
   // Fonction appelée quand on soumet le formulaire
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // Empêche le rechargement de la page
-    console.log('Recherche effectuée avec :', {
-      query: searchQuery,
-      filters
-    });
-    // Ici on pourra ajouter ton appel API plus tard
+    e.preventDefault();
+    const searchParams = buildSearchParams();
+    console.log('SearchBar - handleSubmit: searchParams', searchParams);
+    if (onSearch) {
+      onSearch(searchParams);
+    }
+  };
+
+  // Fonction appelée quand on applique les filtres avancés
+  const handleApplyFilters = () => {
+    const searchParams = buildSearchParams();
+    console.log('SearchBar - handleApplyFilters: searchParams', searchParams);
+    if (onSearch) {
+      onSearch(searchParams);
+    }
+    setIsFilterOpen(false);
   };
 
   return (
@@ -67,15 +148,15 @@ const SearchBar: React.FC = () => {
       {/* Conteneur principal avec fond blanc et ombre */}
       <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-xl shadow-sm">
 
-
-
         {/* Formulaire de recherche */}
         <form
           onSubmit={handleSubmit}
           className="flex-1 flex flex-col md:flex-row gap-3 w-full"
         >
-          {/* Grille pour les 4 filtres principaux (2 colonnes mobile, 4 desktop) */}
+          {/* Grille pour les 4 filtres principaux */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
+
+    
 
             {/* Menu déroulant Projet */}
             <select
@@ -111,7 +192,6 @@ const SearchBar: React.FC = () => {
               onChange={(e) => setFilters({ ...filters, budget: e.target.value })}
               className="w-full h-12 px-3 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
             >
-
               <option value="" disabled>{t('searchbar.budg')}</option>
               {budgets.map(opt => (
                 <option key={opt.value} value={opt.value}>
@@ -120,19 +200,6 @@ const SearchBar: React.FC = () => {
               ))}
             </select>
 
-
-            {/* Champ de recherche texte - Conteneur relatif pour positionner l'icône */}
-            {/* <div className="relative col-span-2 md:col-span-1">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={t('searchbar.plchol')}
-                className="w-full p-3 pl-10 border-0 rounded-lg bg-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500 placeholder-black"
-              /> */}
-              {/* Icône de loupe positionnée absolument à gauche */}
-              {/* <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-black" />
-            </div> */}
           </div>
 
           {/* Boutons d'action */}
@@ -174,8 +241,20 @@ const SearchBar: React.FC = () => {
             </button>
           </div>
 
-          {/* Grille des filtres avancés (1 colonne mobile, 3 desktop) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Grille des filtres avancés (1 colonne mobile, 4 desktop) */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+
+            {/* Filtre Ville */}
+            <div>
+              <h4 className="font-medium text-gray-700 mb-2">{t('annonceList.editPlaceholders.city')}</h4>
+              <input
+                type="text"
+                placeholder="Ex: Yaoundé"
+                value={filters.ville}
+                onChange={(e) => setFilters({ ...filters, ville: e.target.value })}
+                className="w-full h-10 px-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
+            </div>
 
             {/* Filtre Surface */}
             <div>
@@ -211,7 +290,7 @@ const SearchBar: React.FC = () => {
                 {[1, 2, 3, 4, '5+'].map(item => (
                   <button
                     key={item}
-                    onClick={() => setFilters({ ...filters, chambres: item.toString() })}
+                    onClick={() => setFilters({ ...filters, chambres: item.toString() === filters.chambres ? '' : item.toString() })}
                     className={`px-3 py-1 rounded-full transition ${filters.chambres === item.toString()
                       ? 'bg-green-600 text-white'
                       : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
@@ -223,39 +302,47 @@ const SearchBar: React.FC = () => {
               </div>
             </div>
 
-            {/* Filtre Options */}
+            {/* Filtre Douches */}
             <div>
-              <h4 className="font-medium text-gray-700 mb-2">Options</h4>
-              <div className="space-y-2">
-                {Object.entries(filters.options).map(([key, value]) => {
-                  // const space: Record<string, string> = {
-                  //   piscine: "piscine",
-                  //   terrasse: "terrasse",
-                  //   jardin: "jardin",
-                  //   cheminée: "cheminée",
-                  //   parking: "parking",
-                  //   climatisation: "climatisation",
-                  //   security: "système de vidéo surveillance",
-                  //   guard: "société de gardiennage"
-                  // }
-                  return (
-                    < label key={key} className="flex items-center gap-2 cursor-pointer" >
-                      <input
-                        type="checkbox"
-                        checked={value}
-                        onChange={(e) => setFilters({
-                          ...filters,
-                          options: { ...filters.options, [key]: e.target.checked }
-                        })}
-                        className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
-                      />
-
-                      {/* <span>{space[key] || key}</span> */}
-                      <span> {t(`options.${key}`)}</span>
-                    </label>
-                  )
-                })}
+              <h4 className="font-medium text-gray-700 mb-2">{t('annonceDetail.douches')}</h4>
+              <div className="flex flex-wrap gap-2">
+                {[1, 2, 3, 4, '5+'].map(item => (
+                  <button
+                    key={item}
+                    onClick={() => setFilters({ ...filters, douches: item.toString() === filters.douches ? '' : item.toString() })}
+                    className={`px-3 py-1 rounded-full transition ${filters.douches === item.toString()
+                      ? 'bg-green-600 text-white'
+                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      }`}
+                  >
+                    {item}
+                  </button>
+                ))}
               </div>
+            </div>
+
+          </div>
+
+          {/* Deuxième rangée : Options */}
+          <div className="mt-6 border-t pt-6">
+            <h4 className="font-medium text-gray-700 mb-4">Options</h4>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Object.entries(filters.options).map(([key, value]) => {
+                return (
+                  < label key={key} className="flex items-center gap-2 cursor-pointer" >
+                    <input
+                      type="checkbox"
+                      checked={value}
+                      onChange={(e) => setFilters({
+                        ...filters,
+                        options: { ...filters.options, [key]: e.target.checked }
+                      })}
+                      className="w-4 h-4 text-green-600 rounded border-gray-300 focus:ring-green-500"
+                    />
+                    <span> {t(`options.${key}`)}</span>
+                  </label>
+                )
+              })}
             </div>
           </div>
 
@@ -265,13 +352,10 @@ const SearchBar: React.FC = () => {
               onClick={() => setIsFilterOpen(false)}
               className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
-             {t('searchbar.annuler')}
+              {t('searchbar.annuler')}
             </button>
             <button
-              onClick={() => {
-                console.log('Filtres appliqués :', filters);
-                setIsFilterOpen(false);
-              }}
+              onClick={handleApplyFilters}
               className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
             >
               {t('searchbar.appliquer')}
