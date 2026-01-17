@@ -425,5 +425,9 @@
     "cancel": "Cancel",
     "sending": "Sending...",
     "confirm": "Confirm"
+},
+"RechError":{
+    "title": "No results found",
+    "body": "Try modifying your filters or search"
 }
 }

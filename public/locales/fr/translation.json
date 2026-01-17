@@ -429,5 +429,9 @@
         "cancel":"Annuler",
         "sending":"Envoi en cours...",
         "confirm": "Confirmer"
+    },
+    "RechError":{
+        "title": "Aucune annonce ne correspond à votre recherche",
+        "body": "Essayez de modifier vos filtres ou votre recherche"
     }
 }

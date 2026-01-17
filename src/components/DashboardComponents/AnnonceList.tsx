@@ -243,8 +243,8 @@ const AnnonceList: React.FC = () => {
         <>
           {filteredAnnonces.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-600 text-lg">Aucune annonce ne correspond à votre recherche</p>
-              <p className="text-gray-500 mt-2">Essayez de modifier vos filtres ou votre recherche</p>
+              <p className="text-gray-600 text-lg">{t('RechError.title')}</p>
+              <p className="text-gray-500 mt-2">{t('RechError.body')}</p>
             </div>
           ) : (
             <ol className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
