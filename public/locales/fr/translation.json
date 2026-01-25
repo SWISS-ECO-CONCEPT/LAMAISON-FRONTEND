@@ -305,11 +305,6 @@
                 "chambre": "Chambre",
                 "meublé": "Meublé"
             },
-            "projetType": "Type de projet",
-            "projetTypeOptions": {
-                "achat": "Achat",
-                "location": "Location"
-            },
             "surface": "Surface",
             "chambres": "Chambres",
             "douches": "Douches",
@@ -328,6 +323,10 @@
             "serverError": "Erreur serveur ({status})",
             "publishSuccess": "Annonce publiée avec succès !"
         }
+    },
+    "projetTypeOptions": {
+        "achat": "A Vendre",
+        "location": "A Louer"
     },
     "dateseJourPicker": {
         "duree": " Choisir la durée du séjour",

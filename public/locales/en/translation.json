@@ -318,13 +318,12 @@
       "accept": "Accept",
       "reject": "Reject",
       "messaging": "Message"
-    },
-    "projetType": "Project type",
-    "projetTypeOptions": {
-      "achat": "Purchase",
-      "location": "Rent"
-    }
+    }   
   },
+   "projetTypeOptions": {
+      "achat": "For Sale",
+      "location": "For Rent"
+    },
   "rdvAgent": {
     "title": "📅 Appointments with prospects",
     "noAppointments": "No appointments scheduled",

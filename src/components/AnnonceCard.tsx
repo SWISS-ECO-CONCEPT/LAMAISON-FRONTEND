@@ -218,9 +218,9 @@ const AnnonceCard: React.FC<Props> = ({
           </div>
           <div className="flex items-center gap-2">
             <div className={`px-2 py-1 rounded-full font-semibold text-xs text-white shadow-md
-              ${projet === 'location' ? 'bg-blue-600' : 'bg-green-600'}`}
+              ${projet === 'location' ? 'bg-yellow-400' : 'bg-green-600'}`}
             >
-              {projet === 'location' ? t('searchbar.loc') : t('searchbar.achat')}
+              {projet === 'location' ? t('projetTypeOptions.location') : t('projetTypeOptions.achat')}
             </div>
             <div className="flex items-center gap-1 text-gray-500">
               <FaEye />
