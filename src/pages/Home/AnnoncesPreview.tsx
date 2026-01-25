@@ -14,6 +14,7 @@ type Annonce = {
   chambres?: number | null
   douches?: number | null
   vues?: number | null
+  projet: 'achat' | 'location'
 }
 
 const API_BASE = 'http://localhost:5000'
@@ -40,7 +41,6 @@ const AnnoncesPreview: React.FC<AnnoncesPreviewProps> = ({ filters }) => {
     if (f.surfaceMax !== undefined) params.append('surfaceMax', f.surfaceMax.toString())
     if (f.chambres !== undefined) params.append('chambres', f.chambres.toString())
     if (f.douches !== undefined) params.append('douches', f.douches.toString())
-
     const queryString = params.toString()
     return queryString ? `${API_BASE}/annonces?${queryString}` : `${API_BASE}/annonces`
   }
@@ -97,6 +97,7 @@ const AnnoncesPreview: React.FC<AnnoncesPreviewProps> = ({ filters }) => {
                   douches={a.douches ?? 0}
                   surface={a.surface ?? 0}
                   vues={a.vues ?? 0}
+                  projet={a.projet}
                 />
               ))}
             </div>

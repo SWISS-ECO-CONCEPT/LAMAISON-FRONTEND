@@ -14,6 +14,7 @@ type Annonce = {
     chambres?: number | null
     douches?: number | null
     vues?: number | null
+    projet: 'achat' | 'location'
 }
 
 const API_BASE = 'http://localhost:5000'
@@ -101,6 +102,7 @@ const Annonces: React.FC = () => {
                                     douches={a.douches ?? 0}
                                     surface={a.surface ?? 0}
                                     vues={a.vues ?? 0}
+                                    projet={a.projet}
                                 />
                             ))}
                         </div>

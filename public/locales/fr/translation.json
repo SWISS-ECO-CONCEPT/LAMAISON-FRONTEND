@@ -1,4 +1,5 @@
 {
+    "title": "LAMAISON-Plateforme immobilière de mise en relation entre particuliers et agents",
     "heroSection": {
         "title": "Trouvez le bien immobilier idéal",
         "desc": " Avec LAMAISON, explorez des milliers d’annonces en un clic.",
@@ -322,6 +323,10 @@
             "serverError": "Erreur serveur ({status})",
             "publishSuccess": "Annonce publiée avec succès !"
         }
+    },
+    "projetTypeOptions": {
+        "achat": "A Vendre",
+        "location": "A Louer"
     },
     "dateseJourPicker": {
         "duree": " Choisir la durée du séjour",

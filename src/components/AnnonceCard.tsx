@@ -39,6 +39,7 @@ type Props = {
   douches: number
   surface: number
   vues?: number
+  projet: 'achat' | 'location'
 }
 
 const AnnonceCard: React.FC<Props> = ({
@@ -51,6 +52,7 @@ const AnnonceCard: React.FC<Props> = ({
   douches,
   surface,
   vues,
+  projet,
 }) => {
   const { lng } = useParams<{ lng: string }>();
   const { isSignedIn, getToken } = useAuth()
@@ -182,10 +184,7 @@ const AnnonceCard: React.FC<Props> = ({
           ))}
         </Swiper>
 
-        {/* Badge en haut à droite
-        <div className="absolute top-2 right-2 bg-green-600 text-white text-xs px-3 py-1 rounded-full shadow font-semibold">
-          À saisir
-        </div> */}
+       
       </div>
 
       {/* Contenu textuel */}
@@ -217,9 +216,16 @@ const AnnonceCard: React.FC<Props> = ({
               <FaRulerCombined className="text-gray-500" /> {surface} m²
             </div>
           </div>
-          <div className="flex items-center gap-1 text-gray-500">
-            <FaEye />
-            <span>{vues ?? 0}</span>
+          <div className="flex items-center gap-2">
+            <div className={`px-2 py-1 rounded-full font-semibold text-xs text-white shadow-md
+              ${projet === 'location' ? 'bg-yellow-400' : 'bg-green-600'}`}
+            >
+              {projet === 'location' ? t('projetTypeOptions.location') : t('projetTypeOptions.achat')}
+            </div>
+            <div className="flex items-center gap-1 text-gray-500">
+              <FaEye />
+              <span>{vues ?? 0}</span>
+            </div>
           </div>
         </div>
 
