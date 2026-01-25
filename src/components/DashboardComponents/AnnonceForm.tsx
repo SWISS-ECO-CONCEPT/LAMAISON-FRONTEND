@@ -9,6 +9,7 @@ type FormObject = {
   prix: string | number;
   ville: string;
   type: string;
+  projet: string;
   surface: string | number;
   chambres: string | number;
   douches: string | number;
@@ -28,6 +29,7 @@ const AnnonceForm: React.FC = () => {
     prix: "",
     ville: "",
     type: "maison",
+    projet: "location", // Default to 'location'
     surface: "",
     chambres: "",
     douches: "",
@@ -156,6 +158,7 @@ const AnnonceForm: React.FC = () => {
         prix: Number(formData.prix) || 0,
         ville: formData.ville,
         type: formData.type,
+        projet: formData.projet, // Add projet type to payload
         surface: Number(formData.surface) || 0,
         chambres: Number(formData.chambres) || 0,
         douches: Number(formData.douches) || 0,
@@ -195,6 +198,7 @@ const AnnonceForm: React.FC = () => {
         prix: "",
         ville: "",
         type: "maison",
+        projet: "location",
         surface: "",
         chambres: "",
         douches: "",
@@ -278,6 +282,23 @@ const AnnonceForm: React.FC = () => {
             className="w-full border px-3 py-2 rounded-md"
           >
             {Object.entries(t('annonceForm.fields.typeOptions', { returnObjects: true }) as Record<string, string>).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Projet Type */}
+        <div>
+          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.projetType')}</label>
+          <select
+            name="projet"
+            value={formData.projet}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-md"
+          >
+            {Object.entries(t('annonceForm.fields.projetTypeOptions', { returnObjects: true }) as Record<string, string>).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
               </option>

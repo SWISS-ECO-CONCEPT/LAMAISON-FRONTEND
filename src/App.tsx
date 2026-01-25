@@ -19,6 +19,7 @@ import Confidentialite from './pages/Confidentiality/Confidentiality';
 // i18n
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DocumentTitle } from './components/DocumentTitle';
 
 // Dashboards
 import DashboardAgent from './pages/Dashboard/Home/DashboardAgent';
@@ -75,6 +76,7 @@ function LocaleWrapper() {
 
   return (
     <>
+      <DocumentTitle />
       {/*Routes publiques avec Layout global */}
       <Routes>
         <Route element={<Layout />}>

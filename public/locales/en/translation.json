@@ -1,4 +1,5 @@
 {
+    "title": "LAMAISON-Real estate platform connecting individuals and agents",
     "heroSection": {
         "title": "Find your ideal property",
         "desc": "With LAMAISON, explore thousands of listings in one click",
@@ -317,6 +318,11 @@
       "accept": "Accept",
       "reject": "Reject",
       "messaging": "Message"
+    },
+    "projetType": "Project type",
+    "projetTypeOptions": {
+      "achat": "Purchase",
+      "location": "Rent"
     }
   },
   "rdvAgent": {

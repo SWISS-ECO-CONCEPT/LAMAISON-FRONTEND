@@ -1,4 +1,5 @@
 {
+    "title": "LAMAISON-Plateforme immobilière de mise en relation entre particuliers et agents",
     "heroSection": {
         "title": "Trouvez le bien immobilier idéal",
         "desc": " Avec LAMAISON, explorez des milliers d’annonces en un clic.",
@@ -303,6 +304,11 @@
                 "terrain": "Terrain",
                 "chambre": "Chambre",
                 "meublé": "Meublé"
+            },
+            "projetType": "Type de projet",
+            "projetTypeOptions": {
+                "achat": "Achat",
+                "location": "Location"
             },
             "surface": "Surface",
             "chambres": "Chambres",

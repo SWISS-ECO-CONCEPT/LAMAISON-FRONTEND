@@ -91,6 +91,11 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
       params.ville = filters.ville.trim();
     }
 
+    // Projet (achat/location)
+    if (filters.projet) {
+      params.projet = filters.projet;
+    }
+
     // Budget (décomposer la plage)
     if (filters.budget) {
       const budgetOption = budgets.find(b => b.value === filters.budget);

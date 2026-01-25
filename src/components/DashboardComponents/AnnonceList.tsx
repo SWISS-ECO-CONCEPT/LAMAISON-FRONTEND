@@ -26,6 +26,7 @@ type Annonce = {
   surface?: number | null;
   chambres?: number | null;
   douches?: number | null;
+  projet?: string | null;
   images: string[];
 };
 
@@ -70,17 +71,32 @@ const AnnonceList: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetch(`${API_BASE}/annonces/user/${user.id}`, { credentials: 'include' });
+        const token = await getToken();
+        const headers: Record<string, string> = {
+          'Content-Type': 'application/json',
+        };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+        console.log('🔄 Fetching annonces for user:', user.id);
+        const res = await fetch(`${API_BASE}/annonces/user/${user.id}`, {
+          credentials: 'include',
+          headers,
+        });
+        console.log('📦 Response status:', res.status);
         if (!res.ok) {
           const text = await res.text();
           throw new Error(text || `Erreur serveur (${res.status})`);
         }
         const data = await res.json();
+        console.log('✅ Annonces reçues:', data);
         if (!cancelled) {
-          setAnnonces(Array.isArray(data) ? data : []);
-          setFilteredAnnonces(Array.isArray(data) ? data : []);
+          const annoncesData = Array.isArray(data) ? data : data?.data ? data.data : [];
+          setAnnonces(annoncesData);
+          setFilteredAnnonces(annoncesData);
         }
       } catch (e: unknown) {
+        console.error('❌ Erreur fetch annonces:', e);
         if (!cancelled) setError(e instanceof Error ? e.message : String(e));
       } finally {
         if (!cancelled) setLoading(false);
@@ -88,7 +104,7 @@ const AnnonceList: React.FC = () => {
     };
     run();
     return () => { cancelled = true };
-  }, [user?.id]);
+  }, [user?.id, getToken]);
 
   // Filtrer les annonces en fonction des critères de recherche
   useEffect(() => {
@@ -134,6 +150,10 @@ const AnnonceList: React.FC = () => {
     
     if (searchFilters.douches !== undefined) {
       filtered = filtered.filter(annonce => annonce.douches && annonce.douches >= searchFilters.douches!);
+    }
+    
+    if (searchFilters.projet) {
+      filtered = filtered.filter(annonce => annonce.projet === searchFilters.projet);
     }
     
     setFilteredAnnonces(filtered);
