@@ -32,6 +32,7 @@ type Annonce = {
     firstname: string
     role: 'AGENT' | 'PROSPECT'
     phone?: string | null
+    email?: string | null
     avatar?: string | null
   } | null
   createdAt?: string
@@ -131,7 +132,7 @@ const AnnonceDetail: React.FC = () => {
   const proprietaire: ProprietaireOwnerCard = {
     nom: a.proprietaire.firstname || 'N/A',
     tel: a.proprietaire.phone || '',
-    email: '',
+    email: a.proprietaire.email || '',
     type: a.proprietaire.role,
   }
 

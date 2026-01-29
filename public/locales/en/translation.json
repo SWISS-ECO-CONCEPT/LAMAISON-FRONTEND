@@ -28,6 +28,7 @@
         "appart": "Apartment",
         "terrain": "Land",
         "chambre": "Rooms",
+        "studio": "Studio",
         "meub": "Furnished",
         "projet": "Project",
         "typB": "Type of property",
@@ -231,13 +232,15 @@
                 "appartement": "Apartment",
                 "terrain": "Land",
                 "chambre": "Room",
-                "meublé": "Furnished"
+                "meublé": "Furnished",
+                "studio": "Studio"
             },
             "surface": "Area",
             "chambres": "Bedrooms",
             "douches": "Bathrooms",
             "images": "Property images (multiple allowed)",
-            "uploadedImages": "Uploaded images:"
+            "uploadedImages": "Uploaded images:",
+            "negotiable": "Negotiable"
         },
         "buttons": {
             "publish": "Publish",
@@ -321,6 +324,7 @@
     }   
   },
    "projetTypeOptions": {
+    "title": "Project type",
       "achat": "For Sale",
       "location": "For Rent"
     },
