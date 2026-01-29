@@ -16,6 +16,7 @@ type Annonce = {
   vues?: number | null
   projet: 'achat' | 'location'
   negotiable?: boolean
+  bn_reference?: string
 }
 
 const API_BASE = 'http://localhost:5000'
@@ -100,6 +101,7 @@ const AnnoncesPreview: React.FC<AnnoncesPreviewProps> = ({ filters }) => {
                   vues={a.vues ?? 0}
                   projet={a.projet}
                   negotiable={a.negotiable}
+                  bn_reference={a.bn_reference}
                 />
               ))}
             </div>

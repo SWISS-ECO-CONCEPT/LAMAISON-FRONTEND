@@ -41,6 +41,7 @@ type Props = {
   vues?: number
   projet: 'achat' | 'location'
   negotiable?: boolean
+  bn_reference?: string
 }
 
 const AnnonceCard: React.FC<Props> = ({
@@ -55,6 +56,7 @@ const AnnonceCard: React.FC<Props> = ({
   vues,
   projet,
   negotiable,
+  bn_reference,
 }) => {
   const { lng } = useParams<{ lng: string }>();
   const { isSignedIn, getToken } = useAuth()
@@ -164,6 +166,13 @@ const AnnonceCard: React.FC<Props> = ({
           loop
           className="w-full h-full"
         >
+          {/* BN Reference Badge */}
+          {bn_reference && (
+            <div className="absolute top-3 left-3 z-10 bg-black bg-opacity-60 text-white text-xs font-semibold px-2 py-1 rounded-md">
+              {bn_reference}
+            </div>
+          )}
+
           {/* Bouton favoris en overlay */}
           <button
               onClick={handleLike}
