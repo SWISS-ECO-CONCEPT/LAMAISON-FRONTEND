@@ -15,6 +15,7 @@ type Annonce = {
   douches?: number | null
   vues?: number | null
   projet: 'achat' | 'location'
+  negotiable?: boolean
 }
 
 const API_BASE = 'http://localhost:5000'
@@ -85,7 +86,7 @@ const AnnoncesPreview: React.FC<AnnoncesPreviewProps> = ({ filters }) => {
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-3">
-              {items.slice(0, 6).map((a) => (
+              {items.slice(0, 6).map((a:Annonce) => (
                 <AnnonceCard
                   key={a.id}
                   id={a.id}
@@ -98,6 +99,7 @@ const AnnoncesPreview: React.FC<AnnoncesPreviewProps> = ({ filters }) => {
                   surface={a.surface ?? 0}
                   vues={a.vues ?? 0}
                   projet={a.projet}
+                  negotiable={a.negotiable}
                 />
               ))}
             </div>

@@ -28,6 +28,7 @@
         "appart": "Appartement",
         "terrain": "Terrain",
         "chambre": "Chambre",
+        "studio": "Studio",
         "meub": "Meublé",
         "projet": "Projet",
         "typB": "Type de bien",
@@ -303,13 +304,15 @@
                 "appartement": "Appartement",
                 "terrain": "Terrain",
                 "chambre": "Chambre",
+                "studio": "Studio",
                 "meublé": "Meublé"
             },
             "surface": "Surface",
             "chambres": "Chambres",
             "douches": "Douches",
             "images": "Images du bien (plusieurs possibles)",
-            "uploadedImages": "Images uploadées :"
+            "uploadedImages": "Images uploadées :",
+            "negotiable": "Négociable"
         },
         "buttons": {
             "publish": "Publier",
@@ -325,6 +328,7 @@
         }
     },
     "projetTypeOptions": {
+        "title": "Type de projet",
         "achat": "A Vendre",
         "location": "A Louer"
     },

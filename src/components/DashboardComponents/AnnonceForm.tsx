@@ -13,6 +13,7 @@ type FormObject = {
   surface: string | number;
   chambres: string | number;
   douches: string | number;
+  negotiable?: boolean;
   images?: string[]; // URLs retournées par l'API d'images
 };
 
@@ -33,6 +34,7 @@ const AnnonceForm: React.FC = () => {
     surface: "",
     chambres: "",
     douches: "",
+    negotiable: false,
     images: [],
   } as FormObject);
 
@@ -163,6 +165,7 @@ const AnnonceForm: React.FC = () => {
         chambres: Number(formData.chambres) || 0,
         douches: Number(formData.douches) || 0,
         images: imageUrls, // array d'URLs
+        negotiable: formData.negotiable,
       };
 
       // 3) récupérer token et clerkId
@@ -202,6 +205,7 @@ const AnnonceForm: React.FC = () => {
         surface: "",
         chambres: "",
         douches: "",
+        negotiable: false,
         images: [],
       });
       setSelectedFiles([]);
@@ -281,6 +285,7 @@ const AnnonceForm: React.FC = () => {
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-md"
           >
+            <option value="" disabled>{t('annonceForm.fields.type')}</option>
             {Object.entries(t('annonceForm.fields.typeOptions', { returnObjects: true }) as Record<string, string>).map(([value, label]) => (
               <option key={value} value={value}>
                 {label}
@@ -291,18 +296,16 @@ const AnnonceForm: React.FC = () => {
 
         {/* Projet Type */}
         <div>
-          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.projetType')}</label>
+          <label className="block text-gray-700 mb-1">{t('projetTypeOptions.title')}</label>
           <select
             name="projet"
             value={formData.projet}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-md"
           >
-            {Object.entries(t('annonceForm.fields.projetTypeOptions', { returnObjects: true }) as Record<string, string>).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
+            <option value="" disabled>{t('projetTypeOptions.title')}</option>
+            <option value="achat">{t('projetTypeOptions.achat')}</option>
+            <option value="location">{t('projetTypeOptions.location')}</option>
           </select>
         </div>
 
@@ -343,6 +346,18 @@ const AnnonceForm: React.FC = () => {
             className="w-full border px-3 py-2 rounded-md"
             
           />
+        </div>
+
+        {/* Négociable checkbox */}
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            name="negotiable"
+            checked={formData.negotiable}
+            onChange={(e) => setFormData((prev) => ({ ...prev, negotiable: e.target.checked }))}
+            className="form-checkbox h-5 w-5 text-green-600 rounded"
+          />
+          <label className="text-gray-700">{t('annonceForm.fields.negotiable')}</label>
         </div>
 
         {/* Upload images (choix) */}

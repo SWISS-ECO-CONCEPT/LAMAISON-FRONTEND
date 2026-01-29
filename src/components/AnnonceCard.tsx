@@ -40,6 +40,7 @@ type Props = {
   surface: number
   vues?: number
   projet: 'achat' | 'location'
+  negotiable?: boolean
 }
 
 const AnnonceCard: React.FC<Props> = ({
@@ -53,6 +54,7 @@ const AnnonceCard: React.FC<Props> = ({
   surface,
   vues,
   projet,
+  negotiable,
 }) => {
   const { lng } = useParams<{ lng: string }>();
   const { isSignedIn, getToken } = useAuth()
@@ -199,10 +201,16 @@ const AnnonceCard: React.FC<Props> = ({
         </div>
    
         {/* Prix */}
-        <p className="text-green-600 font-extrabold text-base sm:text-lg">
-          {prix.toLocaleString()} FCFA
-        </p>
-
+        <div className="flex items-center justify-between">
+          <p className="text-green-600 font-extrabold text-base sm:text-lg">
+            {prix.toLocaleString()} FCFA
+          </p>
+          {negotiable && (
+            <div className="px-2 py-1 rounded-full font-semibold text-xs text-white shadow-md bg-blue-500">
+              {t('annonceForm.fields.negotiable')}
+            </div>
+          )}
+        </div>
         {/* Caractéristiques */}
         <div className="flex items-center justify-between text-xs sm:text-sm text-gray-600 border-t pt-3">
           <div className="flex gap-4">

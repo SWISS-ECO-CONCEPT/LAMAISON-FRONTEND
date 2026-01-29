@@ -20,6 +20,7 @@ type Favori = {
     douches?: number | null;
     surface?: number | null;
     projet?: 'achat' | 'location';
+    negotiable?: boolean;
   };
 };
 
@@ -112,6 +113,7 @@ const FavorisList: React.FC = () => {
             douches={fav.annonce.douches || 0}
             surface={fav.annonce.surface || 0}
             projet={fav.annonce.projet || 'achat'}
+            negotiable={fav.annonce.negotiable}
           />
         ))}
       </div>

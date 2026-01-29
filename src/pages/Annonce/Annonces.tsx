@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import AnnonceCard from '../../components/AnnonceCard'
 import SearchBar, { type SearchFilters } from '../../components/SearchBar'
+import Pagination from '../../components/Pagination'
 import { t } from 'i18next'
 
 type Annonce = {
@@ -15,6 +16,7 @@ type Annonce = {
     douches?: number | null
     vues?: number | null
     projet: 'achat' | 'location'
+    negotiable?: boolean
 }
 
 const API_BASE = 'http://localhost:5000'
@@ -24,9 +26,12 @@ const Annonces: React.FC = () => {
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
     const [searchFilters, setSearchFilters] = useState<SearchFilters>({})
+    const [currentPage, setCurrentPage] = useState(1)
+    const [itemsPerPage, setItemsPerPage] = useState(12)
+    const [totalItems, setTotalItems] = useState(0)
 
     // Fonction pour construire l'URL avec les paramètres de recherche
-    const buildSearchUrl = (filters: SearchFilters): string => {
+    const buildSearchUrl = useCallback((filters: SearchFilters): string => {
         const params = new URLSearchParams()
 
         if (filters.search) params.append('search', filters.search)
@@ -40,11 +45,15 @@ const Annonces: React.FC = () => {
         if (filters.chambres !== undefined) params.append('chambres', filters.chambres.toString())
         if (filters.douches !== undefined) params.append('douches', filters.douches.toString())
 
+        // Ajouter les paramètres de pagination
+        params.append('page', currentPage.toString())
+        params.append('limit', itemsPerPage.toString())
+
         const queryString = params.toString()
         const url = queryString ? `${API_BASE}/annonces?${queryString}` : `${API_BASE}/annonces`
         console.log('Annonces - buildSearchUrl: ', url); // Debug log
         return url
-    }
+    }, [currentPage, itemsPerPage])
 
     useEffect(() => {
         let cancelled = false
@@ -60,7 +69,16 @@ const Annonces: React.FC = () => {
                     throw new Error(text || `Erreur serveur (${res.status})`)
                 }
                 const data = await res.json()
-                if (!cancelled) setItems(Array.isArray(data) ? data : [])
+                if (!cancelled) {
+                    // Gérer la réponse paginée
+                    if (data.data && Array.isArray(data.data)) {
+                        setItems(data.data)
+                        setTotalItems(data.total || data.data.length)
+                    } else {
+                        setItems(Array.isArray(data) ? data : [])
+                        setTotalItems(Array.isArray(data) ? data.length : 0)
+                    }
+                }
             } catch (e: unknown) {
                 if (!cancelled) setError(e instanceof Error ? e.message : String(e))
             } finally {
@@ -69,14 +87,28 @@ const Annonces: React.FC = () => {
         }
         run()
         return () => { cancelled = true }
-    }, [searchFilters])
+    }, [searchFilters, currentPage, itemsPerPage, buildSearchUrl])
+
+    const totalPages = Math.ceil(totalItems / itemsPerPage)
 
     return (
         <section className="py-8 px-4 max-w-6xl mx-auto mt-14">
             <h2 className="text-2xl font-semibold mb-6 text-center">{t('annonces.tteA')}</h2>
-
             <div className="px-4 py-8 md:px-0">
                 <SearchBar onSearch={setSearchFilters} />
+                {/* Pagination */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    itemsPerPage={itemsPerPage}
+                    totalItems={totalItems}
+                    onItemsPerPageChange={(newItemsPerPage) => {
+                        setItemsPerPage(newItemsPerPage)
+                        setCurrentPage(1) // Reset to first page when changing items per page
+                    }}
+                />
+
             </div>
 
             {loading && <p className="text-center text-gray-600">{t('common.loading')}</p>}
@@ -90,7 +122,7 @@ const Annonces: React.FC = () => {
                         </div>
                     ) : (
                         <div className="grid gap-6 md:grid-cols-3">
-                            {items.map((a) => (
+                            {items.map((a: Annonce) => (
                                 <AnnonceCard
                                     key={a.id}
                                     id={a.id}
@@ -103,10 +135,13 @@ const Annonces: React.FC = () => {
                                     surface={a.surface ?? 0}
                                     vues={a.vues ?? 0}
                                     projet={a.projet}
+                                    negotiable={a.negotiable}
                                 />
                             ))}
                         </div>
                     )}
+
+
                 </>
             )}
         </section>
