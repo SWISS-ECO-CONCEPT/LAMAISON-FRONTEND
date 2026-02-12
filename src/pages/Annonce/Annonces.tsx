@@ -10,6 +10,7 @@ type Annonce = {
     description: string
     prix: number
     ville: string
+    quartier?: string | null
     images: string[]
     surface?: number | null
     chambres?: number | null
@@ -38,6 +39,7 @@ const Annonces: React.FC = () => {
         if (filters.search) params.append('search', filters.search)
         if (filters.type) params.append('type', filters.type)
         if (filters.ville) params.append('ville', filters.ville)
+        if (filters.quartier) params.append('quartier', filters.quartier)
         if (filters.projet) params.append('projet', filters.projet)
         if (filters.prixMin !== undefined) params.append('prixMin', filters.prixMin.toString())
         if (filters.prixMax !== undefined) params.append('prixMax', filters.prixMax.toString())
@@ -129,6 +131,7 @@ const Annonces: React.FC = () => {
                                     id={a.id}
                                     titre={a.titre}
                                     ville={a.ville}
+                                    quartier={a.quartier}
                                     prix={a.prix}
                                     images={a.images}
                                     chambres={a.chambres ?? 0}

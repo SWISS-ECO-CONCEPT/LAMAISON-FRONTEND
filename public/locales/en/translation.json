@@ -222,6 +222,7 @@
     "annonceForm": {
         "title": "Publish a listing (AGENT)",
         "fields": {
+            "quartier": "Quarter",
             "titre": "Title",
             "description": "Description",
             "prix": "Price (FCFA)",

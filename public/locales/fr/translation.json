@@ -294,6 +294,7 @@
     "annonceForm": {
         "title": "Publier une annonce (AGENT)",
         "fields": {
+            "quartier": "Quartier",
             "titre": "Titre",
             "description": "Description",
             "prix": "Prix (FCFA)",

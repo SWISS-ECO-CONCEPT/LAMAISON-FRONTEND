@@ -9,6 +9,7 @@ type Annonce = {
   description: string
   prix: number
   ville: string
+  quartier?: string | null
   images: string[]
   surface?: number | null
   chambres?: number | null
@@ -92,6 +93,7 @@ const AnnoncesPreview: React.FC<AnnoncesPreviewProps> = ({ filters }) => {
                   key={a.id}
                   id={a.id}
                   titre={a.titre}
+                  quartier={a.quartier}
                   ville={a.ville}
                   prix={a.prix}
                   images={a.images}

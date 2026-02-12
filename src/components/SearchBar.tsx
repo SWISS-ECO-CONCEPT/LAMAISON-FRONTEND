@@ -12,6 +12,7 @@ export interface SearchFilters {
   chambres?: number;
   douches?: number;
   ville?: string;
+  quartier?: string;
   projet?: string;
 }
 
@@ -30,6 +31,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     typeBien: '',     // Vide par défaut
     budget: '',       // Vide par défaut
     ville: '',        // Ville
+    quartier: '',     // Quartier
     surface: { min: '', max: '' },  // Surface minimum et maximum
     chambres: '',     // Nombre de chambres
     douches: '',      // Nombre de douches
@@ -92,9 +94,9 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
       params.ville = filters.ville.trim();
     }
 
-    // Projet (achat/location)
-    if (filters.projet) {
-      params.projet = filters.projet;
+    // Quartier
+    if (filters.quartier.trim()) {
+      params.quartier = filters.quartier.trim();
     }
 
     // Budget (décomposer la plage)
@@ -161,8 +163,6 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
         >
           {/* Grille pour les 4 filtres principaux */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full">
-
-    
 
             {/* Menu déroulant Projet */}
             <select
@@ -258,6 +258,18 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
                 placeholder="Ex: Yaoundé"
                 value={filters.ville}
                 onChange={(e) => setFilters({ ...filters, ville: e.target.value })}
+                className="w-full h-10 px-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
+              />
+            </div>
+
+            {/* Filtre Quartier */}
+            <div>
+              <h4 className="font-medium text-gray-700 mb-2">{t('annonceForm.fields.quartier')}</h4>
+              <input
+                type="text"
+                placeholder="Ex: Bastos"
+                value={filters.quartier}
+                onChange={(e) => setFilters({ ...filters, quartier: e.target.value })}
                 className="w-full h-10 px-3 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
               />
             </div>

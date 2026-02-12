@@ -8,6 +8,7 @@ type FormObject = {
   description: string;
   prix: string | number;
   ville: string;
+  quartier: string;
   type: string;
   projet: string;
   surface: string | number;
@@ -29,6 +30,7 @@ const AnnonceForm: React.FC = () => {
     description: "",
     prix: "",
     ville: "",
+    quartier: "",
     type: "maison",
     projet: "location", // Default to 'location'
     surface: "",
@@ -159,6 +161,7 @@ const AnnonceForm: React.FC = () => {
         description: formData.description,
         prix: Number(formData.prix) || 0,
         ville: formData.ville,
+        quartier: formData.quartier,
         type: formData.type,
         projet: formData.projet, // Add projet type to payload
         surface: Number(formData.surface) || 0,
@@ -200,6 +203,7 @@ const AnnonceForm: React.FC = () => {
         description: "",
         prix: "",
         ville: "",
+        quartier: "",
         type: "maison",
         projet: "location",
         surface: "",
@@ -270,6 +274,19 @@ const AnnonceForm: React.FC = () => {
             type="text"
             name="ville"
             value={formData.ville}
+            onChange={handleChange}
+            className="w-full border px-3 py-2 rounded-md"
+            required
+          />
+        </div>
+
+        {/* Quartier */}
+        <div>
+          <label className="block text-gray-700 mb-1">{t('annonceForm.fields.quartier')}</label>
+          <input
+            type="text"
+            name="quartier"
+            value={formData.quartier}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-md"
             required
@@ -349,7 +366,7 @@ const AnnonceForm: React.FC = () => {
         </div>
 
         {/* Négociable checkbox */}
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <input
             type="checkbox"
             name="negotiable"
@@ -358,7 +375,7 @@ const AnnonceForm: React.FC = () => {
             className="form-checkbox h-5 w-5 text-green-600 rounded"
           />
           <label className="text-gray-700">{t('annonceForm.fields.negotiable')}</label>
-        </div>
+        </div> */}
 
         {/* Upload images (choix) */}
         <div>

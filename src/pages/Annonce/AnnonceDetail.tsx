@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useNavigate } from 'react-router-dom'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 import OwnerCard from '../../components/OwnerCard'
@@ -21,6 +21,7 @@ type Annonce = {
   description: string
   prix: number
   ville: string
+  quartier?: string | null
   type?: string | null
   surface?: number | null
   chambres?: number | null
@@ -45,6 +46,7 @@ const toAbsoluteUrl = (u: string) => (u?.startsWith('http') ? u : `${API_BASE}${
 
 const AnnonceDetail: React.FC = () => {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [a, setAnnonce] = useState<Annonce | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -138,6 +140,14 @@ const AnnonceDetail: React.FC = () => {
 
   return (
     <div className="mt-24 px-4 max-w-4xl mx-auto">
+      {/* Bouton de retour */}
+      <button
+        onClick={() => navigate(-1)}
+        className="mb-4 flex items-center gap-2 text-green-600 hover:text-green-700 transition-colors"
+      >
+        ← Retour
+      </button>
+      
       <div className="border rounded-lg shadow-sm p-4 md:p-6 flex flex-col gap-4 bg-white">
         {/* Swiper */}
         <Swiper
@@ -157,7 +167,7 @@ const AnnonceDetail: React.FC = () => {
         <h3 className="text-xl sm:text-2xl font-bold text-gray-800">{a.titre}</h3>
         <div className="flex items-center justify-between gap-2">
           <div>
-            <p className="text-gray-600 text-sm sm:text-base">{a.ville}</p>
+            <p className="text-gray-600 text-sm sm:text-base">{a.ville}{a.quartier ? `, ${a.quartier}` : ''}</p>
             <p className="text-green-600 font-bold text-base sm:text-lg">{a.prix} fcfa</p>
           </div>
           <div className="flex items-center gap-1 text-gray-500 text-sm">

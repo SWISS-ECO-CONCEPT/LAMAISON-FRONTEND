@@ -33,6 +33,7 @@ type Props = {
   id: number
   titre: string
   ville: string
+  quartier?: string | null
   prix: number
   images: string[]
   chambres: number
@@ -48,6 +49,7 @@ const AnnonceCard: React.FC<Props> = ({
   id,
   titre,
   ville,
+  quartier,
   prix,
   images,
   chambres,
@@ -205,7 +207,7 @@ const AnnonceCard: React.FC<Props> = ({
           <h3 className="text-lg font-bold text-gray-800 line-clamp-1">{titre}</h3>
           <p className="text-gray-500 text-sm flex items-center gap-1 mt-1">
             <FaMapMarkerAlt className="text-green-600" />
-            {ville}
+            {ville}{quartier ? `, ${quartier}` : ''}
           </p>
         </div>
    
@@ -282,6 +284,7 @@ export default AnnonceCard
 //   id,
 //   titre,
 //   ville,
+//   quartier,
 //   prix,
 //   images,
 //   chambres,
