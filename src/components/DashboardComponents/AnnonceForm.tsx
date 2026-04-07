@@ -335,7 +335,7 @@ const AnnonceForm: React.FC = () => {
             value={formData.surface}
             onChange={handleChange}
             className="w-full border px-3 py-2 rounded-md"
-            required
+            // required
           />
         </div>
 

@@ -60,6 +60,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
     { value: 'terrain', label: t('searchbar.terrain') },
     { value: 'chambre', label: t('searchbar.chambre') },
     { value: 'studio', label: t('searchbar.studio') },
+    { value: 'duplex', label: t('searchbar.duplex') },
     { value: 'meublé', label: t('searchbar.meub') }
   ];
 

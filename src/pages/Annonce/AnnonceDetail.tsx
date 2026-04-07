@@ -51,6 +51,7 @@ const AnnonceDetail: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showRdv, setShowRdv] = useState(false)
+  const [selectedImage, setSelectedImage] = useState<string | null>(null)
 
   // Typage explicite
   // const [datesSejour, setDatesSejour] = useState<DatesSejour>({
@@ -155,11 +156,16 @@ const AnnonceDetail: React.FC = () => {
           navigation
           pagination={{ clickable: true }}
           loop
-          className="w-full h-60 sm:h-72 md:h-80 rounded overflow-hidden"
+          className="w-full h-60 sm:h-72 md:h-80 rounded overflow-hidden bg-gray-100"
         >
           {a.images.map((img: string, index: number) => (
             <SwiperSlide key={index}>
-              <img src={toAbsoluteUrl(img)} alt={`${a.titre} - ${index + 1}`} className="w-full h-full object-cover" />
+              <img 
+                src={toAbsoluteUrl(img)} 
+                alt={`${a.titre} - ${index + 1}`} 
+                className="w-full h-full object-contain cursor-pointer hover:opacity-95 transition-opacity" 
+                onClick={() => setSelectedImage(toAbsoluteUrl(img))}
+              />
             </SwiperSlide>
           ))}
         </Swiper>
@@ -233,6 +239,30 @@ const AnnonceDetail: React.FC = () => {
          annonceId={a?.id || 0}
         // datesSejour={datesSejour}
       />
+
+      {/* Lightbox / Plein écran */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 cursor-zoom-out animate-in fade-in duration-300"
+          onClick={() => setSelectedImage(null)}
+        >
+          <button 
+            className="absolute top-6 right-6 text-white text-4xl hover:scale-110 transition-transform focus:outline-none"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedImage(null);
+            }}
+          >
+            &times;
+          </button>
+          <img 
+            src={selectedImage} 
+            alt="Plein écran" 
+            className="max-w-full max-h-full object-contain shadow-2xl animate-in zoom-in-95 duration-300"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   )
 }
