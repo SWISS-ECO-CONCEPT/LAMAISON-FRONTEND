@@ -30,6 +30,7 @@
         "chambre": "Rooms",
         "studio": "Studio",
         "meub": "Furnished",
+        "duplex": "Duplex",
         "projet": "Project",
         "typB": "Type of property",
         "budg": "Budget",
@@ -234,7 +235,8 @@
                 "terrain": "Land",
                 "chambre": "Room",
                 "meublé": "Furnished",
-                "studio": "Studio"
+                "studio": "Studio",
+                "duplex": "Duplex"
             },
             "surface": "Area",
             "chambres": "Bedrooms",

@@ -30,6 +30,7 @@
         "chambre": "Chambre",
         "studio": "Studio",
         "meub": "Meublé",
+        "duplex": "Duplex",
         "projet": "Projet",
         "typB": "Type de bien",
         "budg": "Budget",
@@ -306,7 +307,8 @@
                 "terrain": "Terrain",
                 "chambre": "Chambre",
                 "studio": "Studio",
-                "meublé": "Meublé"
+                "meublé": "Meublé",
+                "duplex": "Duplex"
             },
             "surface": "Surface",
             "chambres": "Chambres",
