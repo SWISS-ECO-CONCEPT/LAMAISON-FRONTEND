@@ -51,7 +51,7 @@ const AnnonceDetail: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showRdv, setShowRdv] = useState(false)
-  const [selectedImage, setSelectedImage] = useState<string | null>(null)
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null)
 
   // Typage explicite
   // const [datesSejour, setDatesSejour] = useState<DatesSejour>({
@@ -164,7 +164,7 @@ const AnnonceDetail: React.FC = () => {
                 src={toAbsoluteUrl(img)} 
                 alt={`${a.titre} - ${index + 1}`} 
                 className="w-full h-full object-contain cursor-pointer hover:opacity-95 transition-opacity" 
-                onClick={() => setSelectedImage(toAbsoluteUrl(img))}
+                onClick={() => setSelectedImageIndex(index)}
               />
             </SwiperSlide>
           ))}
@@ -240,27 +240,54 @@ const AnnonceDetail: React.FC = () => {
         // datesSejour={datesSejour}
       />
 
-      {/* Lightbox / Plein écran */}
-      {selectedImage && (
+      {/* Lightbox / Plein écran avec Swiper */}
+      {selectedImageIndex !== null && (
         <div 
-          className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 cursor-zoom-out animate-in fade-in duration-300"
-          onClick={() => setSelectedImage(null)}
+          className="fixed inset-0 z-[100] bg-black/95 flex items-center justify-center cursor-default animate-in fade-in duration-300"
+          onClick={() => setSelectedImageIndex(null)}
         >
           <button 
-            className="absolute top-6 right-6 text-white text-4xl hover:scale-110 transition-transform focus:outline-none"
+            className="absolute top-6 right-6 text-white text-4xl hover:scale-110 transition-transform focus:outline-none z-[110]"
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedImage(null);
+              setSelectedImageIndex(null);
             }}
           >
             &times;
           </button>
-          <img 
-            src={selectedImage} 
-            alt="Plein écran" 
-            className="max-w-full max-h-full object-contain shadow-2xl animate-in zoom-in-95 duration-300"
+          
+          <div 
+            className="w-full h-full flex items-center justify-center p-4 max-h-full"
             onClick={(e) => e.stopPropagation()}
-          />
+          >
+            <Swiper
+              modules={[Navigation, Pagination]}
+              navigation
+              pagination={{ clickable: true, type: 'fraction' }}
+              initialSlide={selectedImageIndex}
+              className="w-full h-full lightbox-swiper"
+              centeredSlides={true}
+              slidesPerView={1}
+              spaceBetween={0}
+              onSwiper={(swiper) => {
+                // Style personnalisé pour les flèches du Swiper dans la lightbox
+                const nextEl = swiper.navigation.nextEl as HTMLElement;
+                const prevEl = swiper.navigation.prevEl as HTMLElement;
+                if (nextEl) nextEl.style.color = 'white';
+                if (prevEl) prevEl.style.color = 'white';
+              }}
+            >
+              {a.images.map((img: string, index: number) => (
+                <SwiperSlide key={index} className="!flex !items-center !justify-center bg-transparent">
+                  <img 
+                    src={toAbsoluteUrl(img)} 
+                    alt={`Plein écran ${index + 1}`} 
+                    className="max-w-full max-h-full object-contain shadow-2xl animate-in zoom-in-95 duration-300"
+                  />
+                </SwiperSlide>
+              ))}
+            </Swiper>
+          </div>
         </div>
       )}
     </div>
