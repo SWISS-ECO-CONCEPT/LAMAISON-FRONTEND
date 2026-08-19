@@ -107,6 +107,31 @@ Le frontend de LAMAISON est une application web moderne construite avec React 19
 - **PostCSS 8.5** : Transformation CSS
 
 
+## Déploiement
+
+### Avec Docker (recommandé)
+
+Le frontend utilise un Dockerfile multi-stage :
+1. **Stage build** : Node.js 20 compile le projet via `npm run build` (les variables `VITE_API_URL` et `VITE_CLERK_PUBLISHABLE_KEY` sont injectées comme build args)
+2. **Stage production** : Nginx Alpine sert les fichiers statiques sur le port 80
+
+```bash
+cd deploy
+cp .env.example .env   # Configurer les variables
+docker compose up --build
+```
+
+Le frontend est accessible sur http://localhost:8080 en Docker.
+
+### Variables d'environnement
+
+| Variable | Requis | Description |
+|----------|--------|-------------|
+| `VITE_API_URL` | oui | URL publique du backend |
+| `VITE_CLERK_PUBLISHABLE_KEY` | oui | Clé publique Clerk |
+
+---
+
 CI-DESSOUS EST UNE PRESENTATION GLOBALE DE L'APPLICATION (FRONTEND+BACKEND)
 # LAMAISON - Application Immobilière
 
