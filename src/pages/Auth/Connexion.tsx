@@ -14,7 +14,7 @@ const schemaSignIn = yup.object().shape({
 
 const Connexion = () => {
   const { lng } = useParams<{ lng: string }>();
-  const { signIn, setActive: setActiveSignIn } = useSignIn();
+  const { signIn, isLoaded: isSignInLoaded, setActive: setActiveSignIn } = useSignIn();
   const { signUp, setActive: setActiveSignUp } = useSignUp();
   const redirectUrl = `/${lng}/dashboard`;
   const [showPassword, setShowPassword] = useState(false);
@@ -37,10 +37,12 @@ const Connexion = () => {
   const navTo = useNavigate();
 
   const handleLogin = async (values: typeof initialValues, formikHelpers: FormikHelpers<typeof initialValues>) => {
-    formikHelpers.setSubmitting(true);
-    if (!signIn || !setActiveSignIn) {
-      throw new Error('Issue while signing in');
+    if (!isSignInLoaded || !signIn || !setActiveSignIn) {
+      alert('La connexion est en cours de préparation, réessaie dans un instant.');
+      formikHelpers.setSubmitting(false);
+      return;
     }
+    formikHelpers.setSubmitting(true);
     try {
       const result = await signIn.create({
         identifier: values.email,
@@ -163,7 +165,7 @@ const Connexion = () => {
 
         <button
           type="submit"
-          disabled={formik.isSubmitting}
+          disabled={formik.isSubmitting || !isSignInLoaded}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-60"
           aria-busy={formik.isSubmitting}
           onClick={() => formik.handleSubmit()}

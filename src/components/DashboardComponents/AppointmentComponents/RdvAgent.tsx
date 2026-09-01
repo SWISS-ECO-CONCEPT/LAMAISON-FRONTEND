@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import RdvCard from "../AppointmentComponents/RdvCard";
 import { useUser, useAuth } from "@clerk/clerk-react";
 import { getOrCreateConversation } from "../../../services/messagingService";
 import { useNavigate, useParams } from "react-router-dom";
 import ProposeDateModal from "./ProposeDateModal";
+import { useSimpleSocket } from "../../../services/socket.service";
 
 type RdvData = {
   id: number;
@@ -41,16 +42,24 @@ const RdvAgent: React.FC = () => {
   const { getToken } = useAuth();
   const navigate = useNavigate();
   const { lng } = useParams<{ lng: string }>();
+  const socket = useSimpleSocket();
   const [loadingId, setLoadingId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentRdvIndex, setCurrentRdvIndex] = useState<number | null>(null);
 
-  useEffect(() => {
-    const fetchRdvs = async () => {
+  // Extrait dans un useCallback pour pouvoir être rappelée à la fois au montage
+  // ET depuis l'écouteur Socket.io ci-dessous (sans dupliquer la logique).
+  const fetchRdvs = useCallback(async () => {
       if (!user?.id) return;
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       try {
-        const res = await fetch(`${API_URL}/rdvs?agentClerkId=${user.id}`);
+        // La route exige requireAuth() côté backend — sans ce token, le serveur
+        // renvoyait 401 et la liste restait vide (il fallait recharger la page
+        // en espérant qu'un ancien fetch, avant durcissement, ait fonctionné).
+        const token = await getToken();
+        const res = await fetch(`${API_URL}/rdvs?agentClerkId=${user.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
         const data: RemoteRdvData[] = await res.json();
         const mapped: RdvData[] = data.map((r: RemoteRdvData) => ({
           id: r.id,
@@ -70,9 +79,28 @@ const RdvAgent: React.FC = () => {
       } catch (err) {
         console.error('Erreur fetch rdvs agent', err)
       }
-    }
-    fetchRdvs()
-  }, [user?.id, t])
+  }, [user?.id, getToken]);
+
+  useEffect(() => {
+    fetchRdvs();
+  }, [fetchRdvs]);
+
+  // Recharge la liste dès qu'un événement RDV pertinent arrive en temps réel
+  // (nouvelle demande, réponse à une proposition...) — sans ça, l'agent ne
+  // voyait la mise à jour qu'en rechargeant manuellement la page.
+  useEffect(() => {
+    if (!socket || !user?.id) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = (payload: any) => {
+      if (payload?.agentClerkId === user.id) {
+        fetchRdvs();
+      }
+    };
+    socket.on('rdv_update', handler);
+    return () => {
+      socket.off('rdv_update', handler);
+    };
+  }, [socket, user?.id, fetchRdvs]);
 
   const handleAction = async (index: number, action: "confirm" | "reject") => {
     const rdv = rdvs[index];

@@ -18,7 +18,7 @@ const schemaSignUp = yup.object().shape({
 const Inscription = () => {
   const { lng } = useParams<{ lng: string }>();
   // const navigate = useNavigate();
-  const { signUp, setActive: setActiveSignUp } = useSignUp();
+  const { signUp, isLoaded: isSignUpLoaded, setActive: setActiveSignUp } = useSignUp();
   const [verifying, setVerifying] = useState(false);
   // const [codeVerification, _setCodeVerification] = useState("");
   const [, setServerError] = useState<string | null>(null);
@@ -56,8 +56,10 @@ const Inscription = () => {
   const handleSignUp = async (values: typeof initialValues) => {
     setServerError(null);
     const setSubmitting = formik.setSubmitting;
-    if (!signUp || !setActiveSignUp) {
-      throw new Error('Issue while signing up')
+    if (!isSignUpLoaded || !signUp || !setActiveSignUp) {
+      setServerError("La création de compte est en cours de préparation, réessaie dans un instant.");
+      setSubmitting(false);
+      return;
     }
 
     try {
