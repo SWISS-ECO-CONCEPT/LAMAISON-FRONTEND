@@ -4,7 +4,7 @@ import { useParams, Link } from "react-router-dom";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useTranslation } from "react-i18next";
 import NotificationAlarm from "./AppointmentComponents/NotificationAlarm";
-import { useNotificationsContext } from "../../context/NotificationsContext";
+import { useNotificationsContext } from "../../context/useNotificationsContext";
 
 
 const Header: React.FC = () => {

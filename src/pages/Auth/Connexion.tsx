@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import * as yup from 'yup'
 import { useFormik, type FormikHelpers } from 'formik';
-import { useSignIn, useSignUp } from '@clerk/clerk-react';
+// import { useSignIn, useSignUp } from '@clerk/clerk-react';
+import { useSignIn } from '@clerk/clerk-react';
 import { Eye, EyeOff } from 'lucide-react';
-import google from '../../assets/google.png'
+// import google from '../../assets/google.png'
 
 const schemaSignIn = yup.object().shape({
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -14,8 +15,12 @@ const schemaSignIn = yup.object().shape({
 
 const Connexion = () => {
   const { lng } = useParams<{ lng: string }>();
+  // isLoaded indique si le SDK Clerk a fini de s'initialiser dans le navigateur.
+  // Sans cette vérification, un clic trop rapide envoie la demande de connexion
+  // avant que Clerk soit prêt, et son API répond 422 — d'où le besoin de
+  // réessayer plusieurs fois avant que ça marche.
   const { signIn, isLoaded: isSignInLoaded, setActive: setActiveSignIn } = useSignIn();
-  const { signUp, setActive: setActiveSignUp } = useSignUp();
+  // const { signUp, setActive: setActiveSignUp } = useSignUp();
   const redirectUrl = `/${lng}/dashboard`;
   const [showPassword, setShowPassword] = useState(false);
 
@@ -37,6 +42,8 @@ const Connexion = () => {
   const navTo = useNavigate();
 
   const handleLogin = async (values: typeof initialValues, formikHelpers: FormikHelpers<typeof initialValues>) => {
+    // On attend que Clerk soit prêt avant de tenter quoi que ce soit — au lieu
+    // d'envoyer une requête vouée à échouer avec 422.
     if (!isSignInLoaded || !signIn || !setActiveSignIn) {
       alert('La connexion est en cours de préparation, réessaie dans un instant.');
       formikHelpers.setSubmitting(false);
@@ -64,44 +71,45 @@ const Connexion = () => {
     }
   };
 
-  const handleLoginWithGoogle = async (
-    strategy: 'oauth_google',
-  ) => {
-    if (!signIn || !signUp) return undefined;
+  // const handleLoginWithGoogle = async (
+  //   strategy: 'oauth_google',
+  // ) => {
+  //   if (!signIn || !signUp) return undefined;
 
-    const userExistsButNeedsToSignIn =
-      signUp.verifications.externalAccount.status === 'transferable' &&
-      signUp.verifications.externalAccount.error?.code ===
-      'external_account_exists';
+  //   const userExistsButNeedsToSignIn =
+  //     signUp.verifications.externalAccount.status === 'transferable' &&
+  //     signUp.verifications.externalAccount.error?.code ===
+  //     'external_account_exists';
 
-    if (userExistsButNeedsToSignIn) {
-      const res = await signIn.create({ transfer: true });
+  //   if (userExistsButNeedsToSignIn) {
+  //     const res = await signIn.create({ transfer: true });
 
-      if (res.status === 'complete') {
-        setActiveSignUp({
-          session: res.createdSessionId,
-        });
-      }
-    }
+  //     if (res.status === 'complete') {
+  //       setActiveSignUp({
+  //         session: res.createdSessionId,
+  //       });
+  //     }
+  //   }
 
-    const userNeedsToBeCreated =
-      signIn.firstFactorVerification.status === 'transferable';
+  //   const userNeedsToBeCreated =
+  //     signIn.firstFactorVerification.status === 'transferable';
 
-    if (userNeedsToBeCreated) {
-      const res = await signUp.create({ transfer: true });
+  //   if (userNeedsToBeCreated) {
+  //     const res = await signUp.create({ transfer: true });
 
-      if (res.status === 'complete') {
-        return setActiveSignUp({ session: res.createdSessionId });
-      }
-      return undefined;
-    } else {
-      return signIn.authenticateWithRedirect({
-        strategy,
-        redirectUrl: '/sign-up/sso-callback',
-        redirectUrlComplete: redirectUrl,
-      });
-    }
-  }
+  //     if (res.status === 'complete') {
+  //       return setActiveSignUp({ session: res.createdSessionId });
+  //     }
+  //     return undefined;
+  //   } else {
+  //     return signIn.authenticateWithRedirect({
+  //       strategy,
+  //       redirectUrl: '/sign-up/sso-callback',
+  //       redirectUrlComplete: redirectUrl,
+  //     });
+  //   }
+  // }
+
   return (
     <div className="mt-24 px-4 max-w-lg mx-auto">
       <h2 className="text-3xl font-bold text-center mb-8 text-green-600">{t('connexion.connexion')}</h2>
@@ -183,7 +191,7 @@ const Connexion = () => {
           )}
         </button>
 
-        {/* Connexion Google */}
+        {/* Connexion Google — masquée temporairement
         <div className="flex flex-col items-center space-y-2">
           <p className='text-sm text-gray-600'>{t('connexion.loginWithGoogle')}</p>
           <button
@@ -193,6 +201,7 @@ const Connexion = () => {
             <img className='w-6 h-6' src={google} alt="google" />
           </button>
         </div>
+        */}
 
         <p className="text-sm text-center text-gray-600">
           {t('connexion.pasCompte')}{" "}

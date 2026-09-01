@@ -1,13 +1,14 @@
 // src/pages/Dashboard/Settings/Settings.tsx
 import { useState, useContext, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { AuthContext } from "../../../context/AuthContext";
 import { updateUserRole } from "../../../services/authService";
 import { useNavigate } from "react-router-dom";
 
 
 const Settings = () => {
+  const { getToken } = useAuth();
   const navigate = useNavigate();
   const { t, i18n } = useTranslation();
   const { user: clerkUser, isLoaded } = useUser();
@@ -78,8 +79,12 @@ const Settings = () => {
     setRoleMessage("");
 
     try {
-      const response = await updateUserRole(clerkUser.id, selectedRole);
-
+      const token = await getToken();
+      if (!token) {
+        throw new Error("Authentification requise");
+      }
+      const response = await updateUserRole(clerkUser.id, selectedRole, token);
+      
       // Mettre à jour le contexte utilisateur IMMÉDIATEMENT
       const updatedUser = {
         ...contextUser,

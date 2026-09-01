@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import MessageInput from "./MessageInput"
 import { useAuth } from "@clerk/clerk-react"
-import { getConversationMessages, getMe, sendMessage, getUserById, type MessageDto } from "../../../services/messagingService"
+import { getConversationMessages, getMe, sendMessage, getUserById, type MessageDto, type DbUser } from "../../../services/messagingService"
 
 interface Message {
   id: number
@@ -21,7 +21,7 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
   const { getToken } = useAuth();
   const [myUserId, setMyUserId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([])
-  const [otherUser, setOtherUser] = useState<any>(null);
+  const [otherUser, setOtherUser] = useState<DbUser | null>(null);
 
   const otherUserId = conversationId;
 

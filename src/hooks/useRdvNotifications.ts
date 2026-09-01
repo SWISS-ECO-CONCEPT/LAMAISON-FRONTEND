@@ -1,5 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
-import { useNotificationsContext } from '../context/NotificationsContext';
+import { useNotificationsContext } from '../context/useNotificationsContext';
 import { useTranslation } from 'react-i18next';
 
 export const useRdvNotifications = (rdvs: Array<{ id: number; status: string; bien: string }>) => {

@@ -108,7 +108,8 @@ export type MessageDto = {
 
 export const getConversationMessages = async (userId1: number, userId2: number, token: string): Promise<MessageDto[]> => {
   // Ces deux routes exigent requireAuth() côté backend depuis le durcissement
-  // de la messagerie — sans ce token, le serveur refusait la requête (401).
+  // de la messagerie — sans ce token, le serveur refusait la requête (401),
+  // ce qui empêchait les messages de s'envoyer et de s'afficher.
   const response = await fetch(`${API_BASE}/messages/${userId1}/${userId2}`, {
     method: 'GET',
     headers: {

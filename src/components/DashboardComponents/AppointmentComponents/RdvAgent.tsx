@@ -53,9 +53,8 @@ const RdvAgent: React.FC = () => {
       if (!user?.id) return;
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       try {
-        // La route exige requireAuth() côté backend — sans ce token, le serveur
-        // renvoyait 401 et la liste restait vide (il fallait recharger la page
-        // en espérant qu'un ancien fetch, avant durcissement, ait fonctionné).
+        // La route /rdvs exige maintenant un token Clerk valide (sécurité) —
+        // sans ce header, le serveur renvoyait 401 et la liste restait vide.
         const token = await getToken();
         const res = await fetch(`${API_URL}/rdvs?agentClerkId=${user.id}`, {
           headers: { 'Authorization': `Bearer ${token}` },
