@@ -14,7 +14,11 @@ const schemaSignIn = yup.object().shape({
 
 const Connexion = () => {
   const { lng } = useParams<{ lng: string }>();
-  const { signIn, setActive: setActiveSignIn } = useSignIn();
+  // isLoaded indique si le SDK Clerk a fini de s'initialiser dans le navigateur.
+// Sans cette vérification, un clic trop rapide envoie la demande de connexion
+// avant que Clerk soit prêt, et son API répond 422 — d'où le besoin de
+// réessayer plusieurs fois avant que ça marche.
+const { signIn, isLoaded: isSignInLoaded, setActive: setActiveSignIn } = useSignIn();
   const { signUp, setActive: setActiveSignUp } = useSignUp();
   const redirectUrl = `/${lng}/dashboard`;
   const [showPassword, setShowPassword] = useState(false);
@@ -37,10 +41,14 @@ const Connexion = () => {
   const navTo = useNavigate();
 
   const handleLogin = async (values: typeof initialValues, formikHelpers: FormikHelpers<typeof initialValues>) => {
-    formikHelpers.setSubmitting(true);
-    if (!signIn || !setActiveSignIn) {
-      throw new Error('Issue while signing in');
+    // On attend que Clerk soit prêt avant de tenter quoi que ce soit — au lieu
+    // d'envoyer une requête vouée à échouer avec 422.
+    if (!isSignInLoaded || !signIn || !setActiveSignIn) {
+      alert('La connexion est en cours de préparation, réessaie dans un instant.');
+      formikHelpers.setSubmitting(false);
+      return;
     }
+    formikHelpers.setSubmitting(true);
     try {
       const result = await signIn.create({
         identifier: values.email,
@@ -163,7 +171,7 @@ const Connexion = () => {
 
         <button
           type="submit"
-          disabled={formik.isSubmitting}
+          disabled={formik.isSubmitting || !isSignInLoaded}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition disabled:opacity-60"
           aria-busy={formik.isSubmitting}
           onClick={() => formik.handleSubmit()}
