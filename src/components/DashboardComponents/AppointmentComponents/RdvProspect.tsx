@@ -26,7 +26,7 @@ type RemoteRdv = {
   nom?: string;
   prenom?: string;
   status: string;
-  annonce: { 
+  annonce: {
     titre?: string;
     proprietaire?: { firstname?: string; clerkId?: string };
   } | null;
@@ -47,7 +47,10 @@ const RdvProspect: React.FC = () => {
     setLoading(true);
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     try {
-      const res = await fetch(`${API_URL}/rdvs?prospectClerkId=${user.id}`);
+      const token = await getToken();
+      const res = await fetch(`${API_URL}/rdvs?prospectClerkId=${user.id}`, {
+        headers: { 'Authorization': `Bearer ${token}` },
+      });
       const data: RemoteRdv[] = await res.json();
       const mapped: RdvCardData[] = data.map(r => ({
         id: r.id,
@@ -62,7 +65,7 @@ const RdvProspect: React.FC = () => {
           ? 'confirmed' : (r.status === 'REFUSE' || r.status === 'ANNULE'
             ? 'rejected' : (r.status === 'PROPOSE' ? 'proposed' : 'pending'))
       }))
-    
+
       setRdvs(mapped)
     } catch (err) {
       console.error('Erreur fetch rdvs prospect', err)
@@ -97,11 +100,11 @@ const RdvProspect: React.FC = () => {
       await res.json();
       setRdvs((prev) => prev.map((r, i) => i === index
         ? {
-            ...r,
-            status: action === 'accept' ? 'confirmed' : 'pending',
-            proposedDate: action === 'accept' ? undefined : r.proposedDate,
-            proposedHeure: action === 'accept' ? undefined : r.proposedHeure,
-          }
+          ...r,
+          status: action === 'accept' ? 'confirmed' : 'pending',
+          proposedDate: action === 'accept' ? undefined : r.proposedDate,
+          proposedHeure: action === 'accept' ? undefined : r.proposedHeure,
+        }
         : r));
     } catch (e) {
       console.error('Erreur proposition rdv', e);
@@ -119,7 +122,7 @@ const RdvProspect: React.FC = () => {
       const token = await getToken();
       const conv = await getOrCreateConversation(user.id, rdv.agentClerkId, rdv.id, token || undefined);
       const otherUserId = conv.receiverId; // agent
-      console.log("other",  conv.receiverId)
+      console.log("other", conv.receiverId)
       const langPrefix = lng || 'fr';
       const base = `/${langPrefix}/dashboard/prospect/messages`;
       navigate(`${base}?otherUserId=${otherUserId}`);
@@ -135,7 +138,7 @@ const RdvProspect: React.FC = () => {
   return (
     <div className="space-y-6 p-4">
       <h2 className="text-xl font-bold flex items-center gap-2">
-        <Calendar className="text-gray-600 w-6 h-6" /> 
+        <Calendar className="text-gray-600 w-6 h-6" />
         {t('rdvProspect.title')}
       </h2>
 
@@ -144,7 +147,7 @@ const RdvProspect: React.FC = () => {
       ) : rdvs.length > 0 ? (
         rdvs.map((rdv, i) => (
           <div key={rdv.id} className="space-y-2">
-            <RdvCard 
+            <RdvCard
               {...rdv}
               AGENT={rdv.agent}
               isLoading={loadingId === rdv.id}

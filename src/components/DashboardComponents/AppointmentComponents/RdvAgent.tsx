@@ -50,7 +50,12 @@ const RdvAgent: React.FC = () => {
       if (!user?.id) return;
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       try {
-        const res = await fetch(`${API_URL}/rdvs?agentClerkId=${user.id}`);
+        // La route /rdvs exige maintenant un token Clerk valide (sécurité) —
+        // sans ce header, le serveur renvoyait 401 et la liste restait vide.
+        const token = await getToken();
+        const res = await fetch(`${API_URL}/rdvs?agentClerkId=${user.id}`, {
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
         const data: RemoteRdvData[] = await res.json();
         const mapped: RdvData[] = data.map((r: RemoteRdvData) => ({
           id: r.id,
