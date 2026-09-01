@@ -6,6 +6,7 @@ import { useAuth, useUser } from "@clerk/clerk-react";
 import { format } from 'date-fns'
 import { getOrCreateConversation } from "../../../services/messagingService";
 import { useNavigate, useParams } from "react-router-dom";
+import { useSimpleSocket } from "../../../services/socket.service";
 
 type RdvCardData = {
   id: number;
@@ -38,6 +39,7 @@ const RdvProspect: React.FC = () => {
   const { getToken } = useAuth();
   const navigate = useNavigate();
   const { lng } = useParams<{ lng: string }>();
+  const socket = useSimpleSocket();
   const [rdvs, setRdvs] = useState<RdvCardData[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingId, setLoadingId] = useState<number | null>(null);
@@ -47,6 +49,8 @@ const RdvProspect: React.FC = () => {
     setLoading(true);
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     try {
+      // La route /rdvs exige maintenant un token Clerk valide (sécurité) —
+      // sans ce header, le serveur renvoyait 401 et la liste restait vide.
       const token = await getToken();
       const res = await fetch(`${API_URL}/rdvs?prospectClerkId=${user.id}`, {
         headers: { 'Authorization': `Bearer ${token}` },
@@ -72,7 +76,7 @@ const RdvProspect: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, getToken]);
 
   const handleProposalAction = async (index: number, action: 'accept' | 'reject') => {
     const rdv = rdvs[index];
@@ -134,6 +138,22 @@ const RdvProspect: React.FC = () => {
   useEffect(() => {
     fetchRdvs();
   }, [fetchRdvs]);
+
+  // Recharge la liste dès qu'un événement RDV pertinent arrive en temps réel —
+  // sans ça, le prospect ne voyait la mise à jour qu'en rechargeant la page.
+  useEffect(() => {
+    if (!socket || !user?.id) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handler = (payload: any) => {
+      if (payload?.prospectClerkId === user.id) {
+        fetchRdvs();
+      }
+    };
+    socket.on('rdv_update', handler);
+    return () => {
+      socket.off('rdv_update', handler);
+    };
+  }, [socket, user?.id, fetchRdvs]);
 
   return (
     <div className="space-y-6 p-4">

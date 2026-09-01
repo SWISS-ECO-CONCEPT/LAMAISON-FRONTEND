@@ -16,10 +16,10 @@ const schemaSignIn = yup.object().shape({
 const Connexion = () => {
   const { lng } = useParams<{ lng: string }>();
   // isLoaded indique si le SDK Clerk a fini de s'initialiser dans le navigateur.
-// Sans cette vérification, un clic trop rapide envoie la demande de connexion
-// avant que Clerk soit prêt, et son API répond 422 — d'où le besoin de
-// réessayer plusieurs fois avant que ça marche.
-const { signIn, isLoaded: isSignInLoaded, setActive: setActiveSignIn } = useSignIn();
+  // Sans cette vérification, un clic trop rapide envoie la demande de connexion
+  // avant que Clerk soit prêt, et son API répond 422 — d'où le besoin de
+  // réessayer plusieurs fois avant que ça marche.
+  const { signIn, isLoaded: isSignInLoaded, setActive: setActiveSignIn } = useSignIn();
   // const { signUp, setActive: setActiveSignUp } = useSignUp();
   const redirectUrl = `/${lng}/dashboard`;
   const [showPassword, setShowPassword] = useState(false);
