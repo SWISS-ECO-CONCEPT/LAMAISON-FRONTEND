@@ -5,7 +5,7 @@ import Header from "../components/DashboardComponents/Header";
 import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 // import { useNotifications } from "../hooks/useNotifications";
-import { useNotificationsContext } from "../context/NotificationsContext";
+import { useNotificationsContext } from "../context/useNotificationsContext";
 import { useSimpleSocket } from "../services/socket.service";
 import { useInactivityLogout } from "../hooks/useInactivityLogout";
 

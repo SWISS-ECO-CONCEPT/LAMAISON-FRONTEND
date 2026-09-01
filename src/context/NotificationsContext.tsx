@@ -1,23 +1,14 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import type { NotificationData } from "../components/DashboardComponents/AppointmentComponents/NotificationAlarm";
-
-type NotificationsContextValue = {
-  notifications: NotificationData[];
-  addNotification: (
-    type: "rdv-request" | "rdv-response" | "message",
-    title: string,
-    message: string,
-    rdvId?: number
-  ) => string;
-  dismissNotification: (id: string) => void;
-  clearAllNotifications: () => void;
-  markAsRead: (id: string) => void;
-};
-
-const NotificationsContext = createContext<NotificationsContextValue | undefined>(undefined);
+import {
+  NotificationsContext,
+  type NotificationsContextValue,
+  loadStoredNotifications,
+  persistNotifications,
+} from "./notifications-context";
 
 export const NotificationsProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
-  const [notifications, setNotifications] = useState<NotificationData[]>([]);
+  const [notifications, setNotifications] = useState<NotificationData[]>(loadStoredNotifications);
 
   const addNotification: NotificationsContextValue["addNotification"] = useCallback(
     (type, title, message, rdvId) => {
@@ -31,22 +22,35 @@ export const NotificationsProvider: React.FC<React.PropsWithChildren> = ({ child
         timestamp: new Date(),
         rdvId,
       };
-      setNotifications((prev) => [newNotification, ...prev]);
+      setNotifications((prev) => {
+        const next = [newNotification, ...prev];
+        persistNotifications(next);
+        return next;
+      });
       return id;
     },
     []
   );
 
   const dismissNotification = useCallback((id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    setNotifications((prev) => {
+      const next = prev.map((n) => (n.id === id ? { ...n, isRead: true } : n));
+      persistNotifications(next);
+      return next;
+    });
   }, []);
 
   const clearAllNotifications = useCallback(() => {
     setNotifications([]);
+    persistNotifications([]);
   }, []);
 
   const markAsRead = useCallback((id: string) => {
-    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isRead: true } : n)));
+    setNotifications((prev) => {
+      const next = prev.map((n) => (n.id === id ? { ...n, isRead: true } : n));
+      persistNotifications(next);
+      return next;
+    });
   }, []);
 
   const value = useMemo(
@@ -61,12 +65,4 @@ export const NotificationsProvider: React.FC<React.PropsWithChildren> = ({ child
   );
 
   return <NotificationsContext.Provider value={value}>{children}</NotificationsContext.Provider>;
-};
-
-export const useNotificationsContext = () => {
-  const ctx = useContext(NotificationsContext);
-  if (!ctx) {
-    throw new Error("useNotificationsContext must be used within NotificationsProvider");
-  }
-  return ctx;
 };
