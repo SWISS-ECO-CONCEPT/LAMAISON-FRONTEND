@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import MessageInput from "./MessageInput"
 import { useAuth } from "@clerk/clerk-react"
-import { getConversationMessages, getMe, sendMessage, getUserById, type MessageDto } from "../../../services/messagingService"
+import { getConversationMessages, getMe, sendMessage, getUserById, type MessageDto, type DbUser } from "../../../services/messagingService"
 
 interface Message {
   id: number
@@ -21,7 +21,7 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
   const { getToken } = useAuth();
   const [myUserId, setMyUserId] = useState<number | null>(null);
   const [messages, setMessages] = useState<Message[]>([])
-  const [otherUser, setOtherUser] = useState<any>(null);
+  const [otherUser, setOtherUser] = useState<DbUser | null>(null);
 
   const otherUserId = conversationId;
 
@@ -46,7 +46,9 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
     const loadConversation = async () => {
       if (!canLoad || myUserId === null) return;
       try {
-        const data = await getConversationMessages(myUserId, otherUserId);
+        const token = await getToken();
+        if (!token) return;
+        const data = await getConversationMessages(myUserId, otherUserId, token);
         const mapped = (data as MessageDto[]).map((m) => ({
           id: m.id,
           sender: m.senderId === myUserId ? t('messages.chat.you', 'Moi') : t('messages.chat.other', 'Interlocuteur'),
@@ -60,7 +62,7 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
     };
 
     loadConversation();
-  }, [canLoad, myUserId, otherUserId, t]);
+  }, [canLoad, myUserId, otherUserId, t, getToken]);
 
   useEffect(() => {
     const loadOtherUser = async () => {
@@ -80,7 +82,9 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
   const handleSendMessage = async (text: string) => {
     if (myUserId === null) return;
     try {
-      const saved = await sendMessage(myUserId, otherUserId, text);
+      const token = await getToken();
+      if (!token) return;
+      const saved = await sendMessage(myUserId, otherUserId, text, token);
       const newMessage: Message = {
         id: saved.id,
         sender: t('messages.chat.you', 'Moi'),

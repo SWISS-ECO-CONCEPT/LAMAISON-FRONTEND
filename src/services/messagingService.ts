@@ -106,10 +106,16 @@ export type MessageDto = {
   createdAt?: string;
 };
 
-export const getConversationMessages = async (userId1: number, userId2: number): Promise<MessageDto[]> => {
+export const getConversationMessages = async (userId1: number, userId2: number, token: string): Promise<MessageDto[]> => {
+  // Ces deux routes exigent requireAuth() côté backend depuis le durcissement
+  // de la messagerie — sans ce token, le serveur refusait la requête (401),
+  // ce qui empêchait les messages de s'envoyer et de s'afficher.
   const response = await fetch(`${API_BASE}/messages/${userId1}/${userId2}`, {
     method: 'GET',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
   });
 
   if (!response.ok) {
@@ -119,10 +125,13 @@ export const getConversationMessages = async (userId1: number, userId2: number):
   return await response.json();
 };
 
-export const sendMessage = async (senderId: number, receiverId: number, content: string): Promise<MessageDto> => {
+export const sendMessage = async (senderId: number, receiverId: number, content: string, token: string): Promise<MessageDto> => {
   const response = await fetch(`${API_BASE}/messages`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
     body: JSON.stringify({ senderId, receiverId, content }),
   });
 
