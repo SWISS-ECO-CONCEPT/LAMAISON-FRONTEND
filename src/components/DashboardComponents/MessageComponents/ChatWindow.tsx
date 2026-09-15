@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from "react"
 import { useTranslation } from "react-i18next"
 import MessageInput from "./MessageInput"
 import { useAuth } from "@clerk/clerk-react"
-import { getConversationMessages, getMe, sendMessage, getUserById, type MessageDto, type DbUser } from "../../../services/messagingService"
+import { getConversationMessages, getMe, sendMessage, getUserById, type DbUser } from "../../../services/messagingService"
 
 interface Message {
   id: number
@@ -49,7 +49,8 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
         const token = await getToken();
         if (!token) return;
         const data = await getConversationMessages(myUserId, otherUserId, token);
-        const mapped = (data as MessageDto[]).map((m) => ({
+        const list = Array.isArray(data) ? data : [];
+        const mapped = list.map((m) => ({
           id: m.id,
           sender: m.senderId === myUserId ? t('messages.chat.you', 'Moi') : t('messages.chat.other', 'Interlocuteur'),
           text: m.content,
@@ -85,6 +86,10 @@ const ChatWindow: React.FC<Props> = ({ conversationId, onBack }) => {
       const token = await getToken();
       if (!token) return;
       const saved = await sendMessage(myUserId, otherUserId, text, token);
+      if (!saved || typeof saved !== 'object' || !('id' in saved)) {
+        console.warn('sendMessage retour inattendu:', saved);
+        return;
+      }
       const newMessage: Message = {
         id: saved.id,
         sender: t('messages.chat.you', 'Moi'),

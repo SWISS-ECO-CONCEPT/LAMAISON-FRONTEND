@@ -11,6 +11,7 @@ import 'swiper/swiper-bundle.css'
 import { Link, useParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import heroImage from '../../assets/img/hero.jpg'
+import { API_BASE, API_ORIGIN } from '../../config/api'
 
 type Annonce = {
   id: number
@@ -25,14 +26,12 @@ type Annonce = {
   vues?: number | null
 }
 
-const API_BASE = 'http://localhost:5000'
-
 // Utilitaire: transforme une URL relative en URL absolue
 const toAbsoluteUrl = (u: string) => {
   if (!u) return ''
   if (u.startsWith('http') || u.startsWith('/assets') || u.startsWith('data:')) return u
-  if (u.startsWith('/uploads')) return `${API_BASE}${u}`
-  if (u.startsWith('uploads')) return `${API_BASE}/${u}`
+  if (u.startsWith('/uploads')) return `${API_ORIGIN}${u}`
+  if (u.startsWith('uploads')) return `${API_ORIGIN}/${u}`
   return u
 }
 
@@ -54,7 +53,8 @@ const HeroSection: React.FC = () => {
           const text = await res.text()
           throw new Error(text || `Erreur serveur (${res.status})`)
         }
-        const data = await res.json()
+        const json = await res.json()
+        const data = json?.data ?? json
         if (!cancelled) {
           // Trier les annonces par nombre de vues (décroissant) et prendre les 5 premières
           const sortedByViews = Array.isArray(data)

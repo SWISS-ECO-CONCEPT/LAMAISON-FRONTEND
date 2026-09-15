@@ -1,9 +1,12 @@
 import React, { useState } from "react";
-import { useSignUp } from "@clerk/clerk-react";
+import { useSignUp, useAuth, useUser } from "@clerk/clerk-react";
 import { useNavigate, useParams } from "react-router-dom";
+import { signUpUser } from "../../services/authService";
 
 const VerificationCode = () => {
   const { signUp, setActive: setActiveSignUp } = useSignUp();
+  const { getToken, userId } = useAuth();
+  const { user } = useUser();
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -18,6 +21,37 @@ const VerificationCode = () => {
 
       if (result?.status === "complete") {
         await setActiveSignUp?.({ session: result?.createdSessionId });
+
+        // Sync explicite avec la BDD locale via POST /auth/signup
+        // Récupère prénom/rôle/téléphone depuis les unsafeMetadata de Clerk
+        // (sauvegardés lors de signUp.create dans Inscription.tsx)
+        setTimeout(async () => {
+          try {
+            const token = await getToken();
+            const meta = (user?.unsafeMetadata ?? {}) as {
+              firstname?: string;
+              role?: 'PROSPECT' | 'AGENT';
+              phone?: string;
+            };
+            const clerkId = userId || user?.id;
+            const firstname = meta.firstname || user?.firstName || '';
+            const role = meta.role || 'PROSPECT';
+            const phone = meta.phone || '';
+
+            if (clerkId && token && firstname && phone) {
+              const sync = await signUpUser(clerkId, firstname, role, phone, token);
+              console.debug('[VerificationCode] Sync BDD réussie :', sync?.user ?? sync);
+            } else {
+              console.warn('[VerificationCode] Sync BDD ignorée : infos manquantes', {
+                clerkId: !!clerkId, token: !!token, firstname: !!firstname, phone: !!phone,
+              });
+            }
+          } catch (syncErr) {
+            // Ne pas bloquer — le webhook Clerk finira le sync (sauf phone)
+            console.warn('[VerificationCode] Échec sync BDD (continuons) :', syncErr);
+          }
+        }, 300);
+
         alert("Compte vérifié avec succès !");
         setTimeout(() =>navigate(`/${lng}/dashboard`), 800);
       } else {

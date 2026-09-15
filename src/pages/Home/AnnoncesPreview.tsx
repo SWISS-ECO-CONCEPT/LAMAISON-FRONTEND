@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import AnnonceCard from '../../components/AnnonceCard'
 import { type SearchFilters } from '../../components/SearchBar'
 import { t } from 'i18next'
+import { API_BASE } from '../../config/api'
 
 type Annonce = {
   id: number
@@ -19,8 +20,6 @@ type Annonce = {
   negotiable?: boolean
   bn_reference?: string
 }
-
-const API_BASE = 'http://localhost:5000'
 
 interface AnnoncesPreviewProps {
   filters?: SearchFilters
@@ -60,7 +59,8 @@ const AnnoncesPreview: React.FC<AnnoncesPreviewProps> = ({ filters }) => {
           const text = await res.text()
           throw new Error(text || `Erreur serveur (${res.status})`)
         }
-        const data = await res.json()
+        const json = await res.json()
+        const data = json?.data ?? json
         if (!cancelled) setItems(Array.isArray(data) ? data : [])
       } catch (e: unknown) {
         if (!cancelled) setError(e instanceof Error ? e.message : String(e))

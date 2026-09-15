@@ -3,6 +3,7 @@ import AnnonceCard from '../../components/AnnonceCard'
 import SearchBar, { type SearchFilters } from '../../components/SearchBar'
 import Pagination from '../../components/Pagination'
 import { t } from 'i18next'
+import { API_BASE } from '../../config/api'
 
 type Annonce = {
     id: number
@@ -20,8 +21,6 @@ type Annonce = {
     negotiable?: boolean
     bn_reference?: string
 }
-
-const API_BASE = 'http://localhost:5000'
 
 const Annonces: React.FC = () => {
     const [items, setItems] = useState<Annonce[]>([])
@@ -71,15 +70,15 @@ const Annonces: React.FC = () => {
                     const text = await res.text()
                     throw new Error(text || `Erreur serveur (${res.status})`)
                 }
-                const data = await res.json()
+                const json = await res.json()
+                const data = json?.data ?? json
                 if (!cancelled) {
-                    // Gérer la réponse paginée
-                    if (data.data && Array.isArray(data.data)) {
-                        setItems(data.data)
-                        setTotalItems(data.total || data.data.length)
+                    if (Array.isArray(data)) {
+                        setItems(data)
+                        setTotalItems(json?.total || data.length)
                     } else {
-                        setItems(Array.isArray(data) ? data : [])
-                        setTotalItems(Array.isArray(data) ? data.length : 0)
+                        setItems([])
+                        setTotalItems(0)
                     }
                 }
             } catch (e: unknown) {

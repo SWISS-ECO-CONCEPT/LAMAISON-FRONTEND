@@ -7,6 +7,7 @@ import { format } from 'date-fns'
 import { getOrCreateConversation } from "../../../services/messagingService";
 import { useNavigate, useParams } from "react-router-dom";
 import { useSimpleSocket } from "../../../services/socket.service";
+import { API_BASE } from '../../../config/api';
 
 type RdvCardData = {
   id: number;
@@ -47,15 +48,21 @@ const RdvProspect: React.FC = () => {
   const fetchRdvs = useCallback(async () => {
     if (!user?.id) return;
     setLoading(true);
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     try {
       // La route /rdvs exige maintenant un token Clerk valide (sécurité) —
       // sans ce header, le serveur renvoyait 401 et la liste restait vide.
       const token = await getToken();
-      const res = await fetch(`${API_URL}/rdvs?prospectClerkId=${user.id}`, {
+      const res = await fetch(`${API_BASE}/rdvs?prospectClerkId=${user.id}`, {
         headers: { 'Authorization': `Bearer ${token}` },
+        credentials: 'include',
       });
-      const data: RemoteRdv[] = await res.json();
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || `Erreur serveur (${res.status})`);
+      }
+      const json = await res.json();
+      const rawList = json?.data ?? json;
+      const data: RemoteRdv[] = Array.isArray(rawList) ? rawList : [];
       const mapped: RdvCardData[] = data.map(r => ({
         id: r.id,
         date: format(new Date(r.date), 'dd/MM/yyyy'),
@@ -81,35 +88,47 @@ const RdvProspect: React.FC = () => {
   const handleProposalAction = async (index: number, action: 'accept' | 'reject') => {
     const rdv = rdvs[index];
     if (!rdv) return;
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
     try {
       setLoadingId(rdv.id);
       const token = await getToken();
       if (!token) return;
 
       const nextStatus = action === 'accept' ? 'ACCEPTE' : 'EN_ATTENTE';
-      const res = await fetch(`${API_URL}/rdvs/${rdv.id}`, {
+      const res = await fetch(`${API_BASE}/rdvs/${rdv.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
         body: JSON.stringify({ status: nextStatus })
       });
 
       if (!res.ok) {
-        throw new Error('Erreur lors de la mise à jour');
+        const text = await res.text();
+        throw new Error(text || 'Erreur lors de la mise à jour');
       }
 
-      await res.json();
-      setRdvs((prev) => prev.map((r, i) => i === index
-        ? {
-          ...r,
-          status: action === 'accept' ? 'confirmed' : 'pending',
-          proposedDate: action === 'accept' ? undefined : r.proposedDate,
-          proposedHeure: action === 'accept' ? undefined : r.proposedHeure,
+      let successFromBody = true;
+      try {
+        const json = await res.json();
+        if (json && typeof json === 'object' && 'success' in json) {
+          successFromBody = !!json.success;
         }
-        : r));
+      } catch { /* empty */ }
+      if (successFromBody) {
+        setRdvs((prev) => prev.map((r, i) => i === index
+          ? {
+            ...r,
+            status: action === 'accept' ? 'confirmed' : 'pending',
+            proposedDate: action === 'accept' ? undefined : r.proposedDate,
+            proposedHeure: action === 'accept' ? undefined : r.proposedHeure,
+          }
+          : r));
+      } else {
+        console.warn('Réponse API défavorable pour action proposition RDV');
+      }
     } catch (e) {
       console.error('Erreur proposition rdv', e);
     } finally {
