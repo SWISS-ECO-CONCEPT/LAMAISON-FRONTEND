@@ -7,13 +7,13 @@ import PaginationComponent from "../Pagination";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Pagination as SwiperPagination } from "swiper/modules";
 import { FaBed, FaRuler, FaShower, FaEdit, FaTrash, FaMapMarkerAlt } from "react-icons/fa";
+import { API_BASE, API_ORIGIN } from '../../config/api';
 
-const API_BASE = "http://localhost:5000";
 const toAbsoluteUrl = (u: string) => {
   if (!u) return "";
   if (u.startsWith("http") || u.startsWith("/assets") || u.startsWith("data:")) return u;
-  if (u.startsWith("/uploads")) return `${API_BASE}${u}`;
-  if (u.startsWith("uploads")) return `${API_BASE}/${u}`;
+  if (u.startsWith("/uploads")) return `${API_ORIGIN}${u}`;
+  if (u.startsWith("uploads")) return `${API_ORIGIN}/${u}`;
   return u;
 };
 

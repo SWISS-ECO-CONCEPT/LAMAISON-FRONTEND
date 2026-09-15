@@ -1,5 +1,4 @@
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000';
-
+import { API_BASE } from '../config/api';
 export type DbUser = {
   id: number;
   clerkId: string;
@@ -28,6 +27,7 @@ export const initiateMessaging = async (
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
       },
+      credentials: 'include',
       body: JSON.stringify({
         recipientClerkId: params.recipientClerkId,
         rdvId: params.rdvId,
@@ -36,11 +36,25 @@ export const initiateMessaging = async (
     });
 
     if (!response.ok) {
-      const text = await response.text();
-      throw new Error(text || `Erreur lors de l'initiation de la messagerie (${response.status})`);
+      let errorMsg = `Erreur lors de l'initiation de la messagerie (${response.status})`;
+      try {
+        const errJson = await response.json();
+        errorMsg = errJson?.error?.message ?? errJson?.message ?? errorMsg;
+      } catch { /* fallback texte brut ci-dessous */ }
+      if (errorMsg === `Erreur lors de l'initiation de la messagerie (${response.status})`) {
+        const text = await response.text();
+        if (text) errorMsg = text;
+      }
+      throw new Error(errorMsg);
     }
 
-    return await response.json();
+    const json = await response.json();
+    const data = json?.data ?? json;
+    return {
+      ...data,
+      data,
+      success: json?.success ?? true,
+    };
   } catch (error) {
     console.error('Erreur initiateMessaging:', error);
     throw error;
@@ -69,13 +83,20 @@ export const getOrCreateConversation = async (
         'Content-Type': 'application/json',
         ...(token && { 'Authorization': `Bearer ${token}` }),
       },
+      credentials: 'include',
     });
 
     if (!response.ok) {
-      throw new Error(`Erreur lors de la récupération de la conversation (${response.status})`);
+      let errorMsg = `Erreur lors de la récupération de la conversation (${response.status})`;
+      try {
+        const errJson = await response.json();
+        errorMsg = errJson?.error?.message ?? errJson?.message ?? errorMsg;
+      } catch { /* fallback */ }
+      throw new Error(errorMsg);
     }
 
-    return await response.json();
+    const json = await response.json();
+    return json?.data ?? json;
   } catch (error) {
     console.error('Erreur getOrCreateConversation:', error);
     throw error;
@@ -89,13 +110,21 @@ export const getMe = async (token: string): Promise<DbUser> => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    credentials: 'include',
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur lors de la récupération du profil (${response.status})`);
+    let errorMsg = `Erreur lors de la récupération du profil (${response.status})`;
+    try {
+      const errJson = await response.json();
+      errorMsg = errJson?.error?.message ?? errJson?.message ?? errorMsg;
+    } catch { /* fallback */ }
+    throw new Error(errorMsg);
   }
 
-  return await response.json();
+  const json = await response.json();
+  const data = json?.data ?? json;
+  return data as DbUser;
 };
 
 export type MessageDto = {
@@ -107,22 +136,27 @@ export type MessageDto = {
 };
 
 export const getConversationMessages = async (userId1: number, userId2: number, token: string): Promise<MessageDto[]> => {
-  // Ces deux routes exigent requireAuth() côté backend depuis le durcissement
-  // de la messagerie — sans ce token, le serveur refusait la requête (401),
-  // ce qui empêchait les messages de s'envoyer et de s'afficher.
   const response = await fetch(`${API_BASE}/messages/${userId1}/${userId2}`, {
     method: 'GET',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    credentials: 'include',
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur lors de la récupération de la conversation (${response.status})`);
+    let errorMsg = `Erreur lors de la récupération de la conversation (${response.status})`;
+    try {
+      const errJson = await response.json();
+      errorMsg = errJson?.error?.message ?? errJson?.message ?? errorMsg;
+    } catch { /* fallback */ }
+    throw new Error(errorMsg);
   }
 
-  return await response.json();
+  const json = await response.json();
+  const data = json?.data ?? json;
+  return Array.isArray(data) ? data : [];
 };
 
 export const sendMessage = async (senderId: number, receiverId: number, content: string, token: string): Promise<MessageDto> => {
@@ -132,15 +166,25 @@ export const sendMessage = async (senderId: number, receiverId: number, content:
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    credentials: 'include',
     body: JSON.stringify({ senderId, receiverId, content }),
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(text || `Erreur lors de l'envoi du message (${response.status})`);
+    let errorMsg = `Erreur lors de l'envoi du message (${response.status})`;
+    try {
+      const errJson = await response.json();
+      errorMsg = errJson?.error?.message ?? errJson?.message ?? errorMsg;
+    } catch { /* fallback texte brut ci-dessous */ }
+    if (errorMsg === `Erreur lors de l'envoi du message (${response.status})`) {
+      const text = await response.text();
+      if (text) errorMsg = text;
+    }
+    throw new Error(errorMsg);
   }
 
-  return await response.json();
+  const json = await response.json();
+  return json?.data ?? json;
 };
 
 export const getUserConversations = async (token: string) => {
@@ -150,13 +194,21 @@ export const getUserConversations = async (token: string) => {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    credentials: 'include',
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur lors de la récupération des conversations (${response.status})`);
+    let errorMsg = `Erreur lors de la récupération des conversations (${response.status})`;
+    try {
+      const errJson = await response.json();
+      errorMsg = errJson?.error?.message ?? errJson?.message ?? errorMsg;
+    } catch { /* fallback */ }
+    throw new Error(errorMsg);
   }
 
-  return await response.json();
+  const json = await response.json();
+  const data = json?.data ?? json;
+  return Array.isArray(data) ? data : [];
 };
 
 export const getUserById = async (id: number, token: string): Promise<DbUser> => {
@@ -166,11 +218,19 @@ export const getUserById = async (id: number, token: string): Promise<DbUser> =>
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
+    credentials: 'include',
   });
 
   if (!response.ok) {
-    throw new Error(`Erreur lors de la récupération de l'utilisateur (${response.status})`);
+    let errorMsg = `Erreur lors de la récupération de l'utilisateur (${response.status})`;
+    try {
+      const errJson = await response.json();
+      errorMsg = errJson?.error?.message ?? errJson?.message ?? errorMsg;
+    } catch { /* fallback */ }
+    throw new Error(errorMsg);
   }
 
-  return await response.json();
+  const json = await response.json();
+  const data = json?.data ?? json;
+  return data as DbUser;
 };

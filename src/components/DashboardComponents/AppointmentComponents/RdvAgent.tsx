@@ -6,6 +6,7 @@ import { getOrCreateConversation } from "../../../services/messagingService";
 import { useNavigate, useParams } from "react-router-dom";
 import ProposeDateModal from "./ProposeDateModal";
 import { useSimpleSocket } from "../../../services/socket.service";
+import { API_BASE } from "../../../config/api";
 
 type RdvData = {
   id: number;
@@ -51,15 +52,21 @@ const RdvAgent: React.FC = () => {
   // ET depuis l'écouteur Socket.io ci-dessous (sans dupliquer la logique).
   const fetchRdvs = useCallback(async () => {
       if (!user?.id) return;
-      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
       try {
         // La route /rdvs exige maintenant un token Clerk valide (sécurité) —
         // sans ce header, le serveur renvoyait 401 et la liste restait vide.
         const token = await getToken();
-        const res = await fetch(`${API_URL}/rdvs?agentClerkId=${user.id}`, {
+        const res = await fetch(`${API_BASE}/rdvs?agentClerkId=${user.id}`, {
           headers: { 'Authorization': `Bearer ${token}` },
+          credentials: 'include',
         });
-        const data: RemoteRdvData[] = await res.json();
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(text || `Erreur serveur (${res.status})`);
+        }
+        const json = await res.json();
+        const rawList = json?.data ?? json;
+        const data: RemoteRdvData[] = Array.isArray(rawList) ? rawList : [];
         const mapped: RdvData[] = data.map((r: RemoteRdvData) => ({
           id: r.id,
           date: new Date(r.date).toLocaleDateString(),
@@ -104,7 +111,6 @@ const RdvAgent: React.FC = () => {
   const handleAction = async (index: number, action: "confirm" | "reject") => {
     const rdv = rdvs[index];
     if (!rdv) return;
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     const newStatus = action === 'confirm' ? 'ACCEPTE' : 'REFUSE';
     try {
       setLoadingId(rdv.id);
@@ -114,20 +120,31 @@ const RdvAgent: React.FC = () => {
         setLoadingId(null);
         return;
       }
-      const res = await fetch(`${API_URL}/rdvs/${rdv.id}`, {
+      const res = await fetch(`${API_BASE}/rdvs/${rdv.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
         body: JSON.stringify({ status: newStatus })
       });
       if (!res.ok) {
-        throw new Error('Erreur lors de la mise à jour');
+        const text = await res.text();
+        throw new Error(text || 'Erreur lors de la mise à jour');
       }
-      await res.json();
-      // refresh list
-      setRdvs((prev) => prev.map((r, i) => i === index ? { ...r, status: newStatus === 'ACCEPTE' ? 'confirmed' : 'rejected' } : r));
+      let successFromBody = true;
+      try {
+        const json = await res.json();
+        if (json && typeof json === 'object' && 'success' in json) {
+          successFromBody = !!json.success;
+        }
+      } catch { /* empty */ }
+      if (successFromBody) {
+        setRdvs((prev) => prev.map((r, i) => i === index ? { ...r, status: newStatus === 'ACCEPTE' ? 'confirmed' : 'rejected' } : r));
+      } else {
+        console.warn('Réponse API défavorable pour action RDV');
+      }
     } catch (err) {
       console.error('Erreur update rdv', err)
     } finally {
@@ -163,24 +180,29 @@ const RdvAgent: React.FC = () => {
     const rdv = rdvs[currentRdvIndex];
     if (!rdv) return;
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     try {
       setLoadingId(rdv.id);
       const token = await getToken();
       if (!token) return;
 
-      const res = await fetch(`${API_URL}/rdvs/${rdv.id}`, {
+      const res = await fetch(`${API_BASE}/rdvs/${rdv.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
+        credentials: 'include',
         body: JSON.stringify({ status: 'PROPOSE', proposedDate: proposedDate.toISOString() })
       });
       if (!res.ok) {
-        throw new Error('Erreur lors de la proposition');
+        const text = await res.text();
+        throw new Error(text || 'Erreur lors de la proposition');
       }
-      const updated = await res.json();
+      const json = await res.json();
+      const updated = json?.data ?? json;
+      if (json && typeof json === 'object' && 'success' in json && !json.success) {
+        throw new Error(json?.error?.message || 'Réponse API défavorable');
+      }
       setRdvs((prev) => prev.map((r, i) => i === currentRdvIndex ? {
         ...r,
         status: 'proposed',

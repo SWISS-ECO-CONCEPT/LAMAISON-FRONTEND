@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useTranslation } from 'react-i18next';
+import { API_BASE } from '../../config/api';
 
 type FormObject = {
   titre: string;
@@ -17,8 +18,6 @@ type FormObject = {
   negotiable?: boolean;
   images?: string[]; // URLs retournées par l'API d'images
 };
-
-const API_BASE = "http://localhost:5000";
 
 const AnnonceForm: React.FC = () => {
   const { getToken } = useAuth();
@@ -97,32 +96,43 @@ const AnnonceForm: React.FC = () => {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
-            // Ne pas mettre 'Content-Type' ici ; fetch le définit automatiquement pour FormData
           },
+          credentials: "include",
           body: fd,
-          // credentials pas nécessaire sauf si ton serveur exige cookies et les gère
         });
 
         if (!res.ok) {
-          // essaie d'extraire le message d'erreur du serveur
-          const text = await res.text();
-          throw new Error(
-            text || `Erreur lors de l'upload de ${file.name} (status ${res.status})`
-          );
+          // essaie d'extraire le message d'erreur du serveur avec format uniforme
+          let errorMsg = `Erreur lors de l'upload de ${file.name} (status ${res.status})`;
+          try {
+            const errJson = await res.json();
+            errorMsg = errJson?.error?.message ?? errJson?.message ?? errorMsg;
+          } catch {
+            // fallback text si ce n'est pas du JSON
+            try {
+              const text = await res.text();
+              if (text) errorMsg = text;
+            } catch { /* ignore */ }
+          }
+          throw new Error(errorMsg);
         }
 
-        // parsing JSON et robustesse quant au shape retourné
-        const data = await res.json();
-        // Accept common shapes: { url: '...' } ou { data: { url: '...' } }
+        // parsing JSON avec extraction du wrapper uniforme { success, data: { url } }
+        const json = await res.json();
+        if (json && typeof json === 'object' && 'success' in json && json.success !== true) {
+          throw new Error(json?.error?.message ?? json?.message ?? `Upload refusé pour ${file.name}`);
+        }
+        const unwrapped = (json?.data ?? json) as { url?: string; path?: string; filePath?: string };
+
+        // Robustesse: accepte plusieurs shapes possibles
         const url =
-          (data && (data.url || (data.data && data.data.url))) ||
-          // fallback: peut-être que le serveur retourne { path: 'uploads/...' }
-          (data && (data.path || data.filePath)) ||
+          unwrapped?.url ||
+          unwrapped?.path ||
+          unwrapped?.filePath ||
           null;
 
         if (!url) {
-          // si ton backend renvoie un objet différent, log pour debug
-          console.warn("Réponse inattendue lors de l'upload image:", data);
+          console.warn("Réponse inattendue lors de l'upload image:", json);
           throw new Error(t('annonceForm.errors.uploadError', { error: `Could not extract URL for ${file.name}` }));
         }
 

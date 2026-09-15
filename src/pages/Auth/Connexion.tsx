@@ -3,10 +3,9 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import * as yup from 'yup'
 import { useFormik, type FormikHelpers } from 'formik';
-// import { useSignIn, useSignUp } from '@clerk/clerk-react';
-import { useSignIn } from '@clerk/clerk-react';
+import { useSignIn, useAuth } from '@clerk/clerk-react';
 import { Eye, EyeOff } from 'lucide-react';
-// import google from '../../assets/google.png'
+import { signInUser } from '../../services/authService';
 
 const schemaSignIn = yup.object().shape({
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -15,12 +14,8 @@ const schemaSignIn = yup.object().shape({
 
 const Connexion = () => {
   const { lng } = useParams<{ lng: string }>();
-  // isLoaded indique si le SDK Clerk a fini de s'initialiser dans le navigateur.
-  // Sans cette vérification, un clic trop rapide envoie la demande de connexion
-  // avant que Clerk soit prêt, et son API répond 422 — d'où le besoin de
-  // réessayer plusieurs fois avant que ça marche.
   const { signIn, isLoaded: isSignInLoaded, setActive: setActiveSignIn } = useSignIn();
-  // const { signUp, setActive: setActiveSignUp } = useSignUp();
+  const { getToken, userId } = useAuth();
   const redirectUrl = `/${lng}/dashboard`;
   const [showPassword, setShowPassword] = useState(false);
 
@@ -58,7 +53,23 @@ const Connexion = () => {
 
       if (result.status === 'complete') {
         await setActiveSignIn({ session: result.createdSessionId });
-        // alert('You are now signed in!');
+
+        // Sync explicite avec la BDD locale via POST /auth/signin
+        // Lecture correcte du wrapper { success, data } pour rester compatible
+        // avec l'uniformisation serveur.
+        setTimeout(async () => {
+          try {
+            const token = await getToken();
+            if (userId && token) {
+              const sync = await signInUser(userId, token);
+              console.debug('[Connexion] Sync BDD réussie :', sync?.user ?? sync);
+            }
+          } catch (syncErr) {
+            // Ne pas bloquer la redirection — le webhook Clerk finira le sync
+            console.warn('[Connexion] Échec sync BDD (continuons) :', syncErr);
+          }
+        }, 200);
+
         navTo(redirectUrl);
       } else {
         alert('Veuillez compléter la connexion');

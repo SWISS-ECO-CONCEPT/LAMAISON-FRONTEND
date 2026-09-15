@@ -20,7 +20,8 @@ const ConversationsList: React.FC<Props> = ({ onSelectConversation }) => {
         const token = await getToken()
         if (!token) return
         const data = await getUserConversations(token)
-        setConversations(data)
+        const list = Array.isArray(data) ? data : []
+        setConversations(list)
       } catch (err) {
         console.error("Error loading conversations:", err)
         setError(t('messages.conversations.error', 'Erreur lors du chargement des conversations'))
@@ -51,19 +52,19 @@ const ConversationsList: React.FC<Props> = ({ onSelectConversation }) => {
             key={conv.id}
             onClick={() => onSelectConversation(conv.id)}
             className="p-4 border-b hover:bg-gray-50 cursor-pointer transition-colors"
-            aria-label={`${t('messages.conversations.conversationWith', 'Conversation avec')} ${conv.otherUser.firstname}`}
+            aria-label={`${t('messages.conversations.conversationWith', 'Conversation avec')} ${conv.otherUser?.firstname || ''}`}
           >
             <div className="flex items-center space-x-3">
-              {conv.otherUser.avatar ? (
+              {conv.otherUser?.avatar ? (
                 <img src={conv.otherUser.avatar} alt="" className="w-10 h-10 rounded-full" />
               ) : (
                 <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                  {conv.otherUser.firstname.charAt(0)}
+                  {conv.otherUser?.firstname?.charAt(0) || '?'}
                 </div>
               )}
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900 truncate">{conv.otherUser.firstname}</p>
-                <p className="text-sm text-gray-500 truncate">{conv.lastMessage.content}</p>
+                <p className="font-medium text-gray-900 truncate">{conv.otherUser?.firstname || ''}</p>
+                <p className="text-sm text-gray-500 truncate">{conv.lastMessage?.content || ''}</p>
               </div>
             </div>
           </div>

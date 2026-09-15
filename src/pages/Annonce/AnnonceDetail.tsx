@@ -6,6 +6,7 @@ import OwnerCard from '../../components/OwnerCard'
 import RdvModal from '../../components/RdvModal'
 import { FaBed, FaRulerCombined, FaShower, FaEye } from 'react-icons/fa'
 import { t } from 'i18next'
+import { API_BASE, API_ORIGIN } from '../../config/api'
 // import DateSejourPicker, { type DatesSejour } from '../../components/DateSejourPicker'
 
 type ProprietaireOwnerCard = {
@@ -39,10 +40,8 @@ type Annonce = {
   createdAt?: string
 }
 
-const API_BASE = 'http://localhost:5000'
-
 // Utilitaire: transforme une URL relative (ex: /uploads/xxx.jpg) en URL absolue
-const toAbsoluteUrl = (u: string) => (u?.startsWith('http') ? u : `${API_BASE}${u || ''}`)
+const toAbsoluteUrl = (u: string) => (u?.startsWith('http') ? u : `${API_ORIGIN}${u || ''}`)
 
 const AnnonceDetail: React.FC = () => {
   const { id } = useParams()
@@ -71,7 +70,8 @@ const AnnonceDetail: React.FC = () => {
           const text = await res.text()
           throw new Error(text || `Erreur serveur (${res.status})`)
         }
-        const data: Annonce = await res.json()
+        const json = await res.json()
+        const data: Annonce = json?.data ?? json
         if (!cancelled) {
           setAnnonce(data)
           // Incrémente le nombre de vues côté backend (erreurs silencieuses)

@@ -2,8 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useAuth, useUser } from "@clerk/clerk-react";
 import { useTranslation } from "react-i18next";
 import AnnonceCard from "../AnnonceCard";
-
-const API_BASE = "http://localhost:5000";
+import { API_BASE } from '../../config/api';
 
 type Favori = {
   id: number;
@@ -60,13 +59,8 @@ const FavorisList: React.FC = () => {
           throw new Error(text || `Erreur serveur (${res.status})`);
         }
 
-        const raw = await res.text();
-        let data: unknown;
-        try {
-          data = raw ? JSON.parse(raw) : [];
-        } catch {
-          throw new Error(raw || "Réponse inattendue du serveur (non JSON).");
-        }
+        const json = await res.json();
+        const data = json?.data ?? json;
         if (!cancelled) {
           const favs = Array.isArray(data) ? (data as Favori[]) : [];
           setFavoris(favs);

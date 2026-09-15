@@ -1,6 +1,7 @@
 import { io, Socket } from 'socket.io-client';
 import { useUser } from '@clerk/clerk-react';
 import { useEffect, useState } from 'react';
+import { API_ORIGIN } from '../config/api';
 
 let socketInstance: Socket | null = null;
 
@@ -15,11 +16,9 @@ export const useSimpleSocket = () => {
       }
       return;
     }
-
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
     
     try {
-      socketInstance = io(API_URL, {
+      socketInstance = io(API_ORIGIN, {
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,

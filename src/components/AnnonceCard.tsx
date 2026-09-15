@@ -6,17 +6,15 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { Navigation, Pagination } from 'swiper/modules'
 import { t } from 'i18next'
 import { useAuth, useUser } from '@clerk/clerk-react'
+import { API_BASE, API_ORIGIN } from '../config/api';
 
-
-
-const API_BASE = 'http://localhost:5000'
 const toAbsoluteUrl = (u: string) => {
   if (!u) return ''
   // Keep absolute URLs and Vite asset URLs as-is
   if (u.startsWith('http') || u.startsWith('/assets') || u.startsWith('data:')) return u
   // Prefix backend upload paths
-  if (u.startsWith('/uploads')) return `${API_BASE}${u}`
-  if (u.startsWith('uploads')) return `${API_BASE}/${u}`
+  if (u.startsWith('/uploads')) return `${API_ORIGIN}${u}`
+  if (u.startsWith('uploads')) return `${API_ORIGIN}/${u}`
   // Otherwise leave as-is
   return u
 }
@@ -94,8 +92,11 @@ const AnnonceCard: React.FC<Props> = ({
           const text = await res.text();
           throw new Error(text || `Erreur serveur (${res.status})`);
         }
-        const data = await res.json()
-        const likedAnnonce = data.find((a: FavoriResponse) => a.annonceId === id)
+        const json = await res.json()
+        const data = json?.data ?? json
+        const likedAnnonce = Array.isArray(data)
+          ? data.find((a: FavoriResponse) => a.annonceId === id)
+          : undefined
         setLiked(!!likedAnnonce)
     } catch (error) {
       console.error('Erreur réseau favoris:', error)
@@ -131,7 +132,8 @@ const AnnonceCard: React.FC<Props> = ({
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`, 
         },
-        body: liked ? undefined : JSON.stringify({ annonceId: id }),
+        credentials: 'include',
+        body: liked ? undefined : JSON.stringify({ annonceId: Number(id) }),
       })
 
       // Gérer le cas où l'annonce n'existe plus
@@ -142,17 +144,26 @@ const AnnonceCard: React.FC<Props> = ({
       }
 
       if (response.ok) {
-        const nowLiked = !liked
-        setLiked(nowLiked)
+        let successFromBody = true;
+        try {
+          const json = await response.json();
+          if (json && typeof json === 'object' && 'success' in json) {
+            successFromBody = !!json.success;
+          }
+        } catch { /* empty */ }
+        if (successFromBody) {
+          const nowLiked = !liked
+          setLiked(nowLiked)
+        } else {
+          console.warn('Réponse API défavorable pour favoris');
+        }
       } else {
         const text = await response.text()
-        console.error('Erreur API favoris:', text)
-        // Gérer les erreurs silencieusement sans alerte
+        console.error('Erreur API favoris:', response.status, text)
         console.warn('Erreur lors de la mise à jour des favoris, annonce peut avoir été supprimée')
       }
     } catch (error) {
       console.error('Erreur réseau handleLike:', error)
-      // Gestion silencieuse des erreurs réseau
     }
   }
 
