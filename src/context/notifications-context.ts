@@ -7,7 +7,8 @@ export type NotificationsContextValue = {
     type: "rdv-request" | "rdv-response" | "message",
     title: string,
     message: string,
-    rdvId?: number
+    rdvId?: number,
+    link?: string
   ) => string;
   dismissNotification: (id: string) => void;
   clearAllNotifications: () => void;

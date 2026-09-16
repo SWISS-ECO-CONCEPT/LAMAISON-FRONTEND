@@ -25,17 +25,17 @@ const Settings = () => {
   const [roleMessageType, setRoleMessageType] = useState<"success" | "error" | "">();
 
   // Notifications
-  const [notifications, setNotifications] = useState({
-    email: true,
-    push: false,
-  });
+  // const [notifications, setNotifications] = useState({
+  //   email: true,
+  //   push: false,
+  // });
 
   // Mot de passe
-  const [password, setPassword] = useState({
-    current: "",
-    newPass: "",
-    confirm: "",
-  });
+  // const [password, setPassword] = useState({
+  //   current: "",
+  //   newPass: "",
+  //   confirm: "",
+  // });
 
   // Synchroniser selectedRole quand le rôle change (Clerk ou contexte)
   useEffect(() => {
@@ -43,16 +43,16 @@ const Settings = () => {
     setSelectedRole(newRole);
   }, [clerkUser?.unsafeMetadata?.role, contextUser?.role, isLoaded]);
 
-  const handlePasswordChange = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (password.newPass !== password.confirm) {
-      alert(t('settings.password.mismatch'));
-      return;
-    }
-    console.log("Password changed successfully ✅");
-    alert(t('settings.password.success'));
-    setPassword({ current: "", newPass: "", confirm: "" });
-  };
+  // const handlePasswordChange = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (password.newPass !== password.confirm) {
+  //     alert(t('settings.password.mismatch'));
+  //     return;
+  //   }
+  //   console.log("Password changed successfully ✅");
+  //   alert(t('settings.password.success'));
+  //   setPassword({ current: "", newPass: "", confirm: "" });
+  // };
 
   const handleRoleChange = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,7 +168,7 @@ const Settings = () => {
       </section>
 
       {/* Mot de passe */}
-      <section className="bg-white p-6 shadow rounded-lg">
+      {/* <section className="bg-white p-6 shadow rounded-lg">
         <h2 className="text-xl font-semibold mb-4">{t('settings.sections.security')}</h2>
         <form onSubmit={handlePasswordChange} className="space-y-4">
           <div>
@@ -214,7 +214,7 @@ const Settings = () => {
             {t('settings.password.updateButton')}
           </button>
         </form>
-      </section>
+      </section> */}
 
       {/* Langue */}
       <section className="bg-white p-6 shadow rounded-lg">
@@ -234,7 +234,7 @@ const Settings = () => {
       </section>
 
       {/* Notifications */}
-      <section className="bg-white p-6 shadow rounded-lg">
+      {/* <section className="bg-white p-6 shadow rounded-lg">
         <h2 className="text-xl font-semibold mb-4">{t('settings.sections.notifications')}</h2>
         <div className="space-y-3">
           <label className="flex items-center gap-3">
@@ -260,7 +260,7 @@ const Settings = () => {
             {t('settings.notifications.push')}
           </label>
         </div>
-      </section>
+      </section> */}
     </div>
   );
 };

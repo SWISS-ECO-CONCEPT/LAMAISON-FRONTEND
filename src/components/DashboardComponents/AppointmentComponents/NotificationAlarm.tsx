@@ -1,6 +1,8 @@
-import React, { useState} from "react";
+import React, { useState } from "react";
 import { Bell, X } from "lucide-react";
-
+import { useNavigate, useParams } from "react-router-dom";
+import { useUser } from "@clerk/clerk-react";
+import { useNotificationsContext } from "../../../context/useNotificationsContext";
 
 export interface NotificationData {
   id: string;
@@ -12,6 +14,7 @@ export interface NotificationData {
   rdvId?: number;
   prospectName?: string;
   agentName?: string;
+  link?: string;
 }
 
 interface NotificationAlarmProps {
@@ -27,13 +30,30 @@ const NotificationAlarm: React.FC<NotificationAlarmProps> = ({
 }) => {
   const [showPanel, setShowPanel] = useState(false);
   const unreadCount = notifications.filter((n) => !n.isRead).length;
-  // const { playSound } = useNotificationSound();
+  const navigate = useNavigate();
+  const { lng } = useParams<{ lng: string }>();
+  const { user } = useUser();
+  const { markAsRead } = useNotificationsContext();
 
-  // useEffect(() => {
-  //   if (unreadCount > 0) {
-  //     playSound();
-  //   }
-  // }, [unreadCount, playSound]);
+  const handleNotificationClick = (notification: NotificationData) => {
+    markAsRead(notification.id);
+    setShowPanel(false);
+
+    if (notification.link) {
+      navigate(notification.link);
+      return;
+    }
+
+    const langPrefix = lng || 'fr';
+    const userRole = (user?.unsafeMetadata?.role as string) || "PROSPECT";
+    const rolePath = userRole === 'AGENT' ? 'agent' : 'prospect';
+
+    if (notification.type === 'message') {
+      navigate(`/${langPrefix}/dashboard/${rolePath}/messages`);
+    } else {
+      navigate(`/${langPrefix}/dashboard/${rolePath}/rdv`);
+    }
+  };
 
   const getNotificationColor = (type: string) => {
     if (type === "rdv-request") return "border-blue-500 bg-blue-50";
@@ -93,9 +113,12 @@ const NotificationAlarm: React.FC<NotificationAlarmProps> = ({
               {notifications.map((notification) => (
                 <div
                   key={notification.id}
+                  onClick={() => handleNotificationClick(notification)}
                   className={`border-l-4 ${getNotificationColor(
                     notification.type
-                  )} p-3 border-b hover:bg-opacity-75 transition cursor-pointer`}
+                  )} p-3 border-b hover:bg-opacity-75 transition cursor-pointer ${
+                    !notification.isRead ? 'font-semibold' : 'opacity-80'
+                  }`}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
@@ -107,7 +130,7 @@ const NotificationAlarm: React.FC<NotificationAlarmProps> = ({
                           {notification.title}
                         </h4>
                         {!notification.isRead && (
-                          <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">
+                          <span className="bg-red-500 text-white text-xs px-2 py-0.5 rounded-full font-normal">
                             Nouveau
                           </span>
                         )}
@@ -120,8 +143,12 @@ const NotificationAlarm: React.FC<NotificationAlarmProps> = ({
                       </p>
                     </div>
                     <button
-                      onClick={() => onDismiss(notification.id)}
-                      className="ml-2 text-gray-400 hover:text-gray-600"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDismiss(notification.id);
+                      }}
+                      className="ml-2 text-gray-400 hover:text-gray-600 p-1 rounded hover:bg-gray-200 transition"
+                      title="Supprimer"
                     >
                       <X size={16} />
                     </button>

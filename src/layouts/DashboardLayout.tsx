@@ -33,39 +33,42 @@ const DashboardLayout = () => {
       const isForProspect = payload?.prospectClerkId && payload.prospectClerkId === user.id;
       if (!isForAgent && !isForProspect) return;
 
+      const rolePath = isForAgent ? 'agent' : 'prospect';
+      const rdvLink = `/${lng || 'fr'}/dashboard/${rolePath}/rdv`;
+
       if (payload?.type === 'rdv_request' && isForAgent) {
-        addNotification('rdv-request', 'Nouvelle demande de RDV', `RDV #${payload.rdvId} en attente`, payload.rdvId);
+        addNotification('rdv-request', 'Nouvelle demande de RDV', `RDV #${payload.rdvId} en attente`, payload.rdvId, rdvLink);
         return;
       }
 
       if (payload?.type === 'rdv_proposed' && isForProspect) {
-        addNotification('rdv-response', 'Nouvelle proposition de RDV', `RDV #${payload.rdvId} à valider`, payload.rdvId);
+        addNotification('rdv-response', 'Nouvelle proposition de RDV', `RDV #${payload.rdvId} à valider`, payload.rdvId, rdvLink);
         return;
       }
 
       if ((payload?.type === 'rdv_accepted' || payload?.type === 'proposal_accepted') && isForProspect) {
-        addNotification('rdv-response', 'RDV accepté', `RDV #${payload.rdvId} accepté`, payload.rdvId);
+        addNotification('rdv-response', 'RDV accepté', `RDV #${payload.rdvId} accepté`, payload.rdvId, rdvLink);
         return;
       }
 
       if ((payload?.type === 'rdv_rejected') && isForProspect) {
-        addNotification('rdv-response', 'RDV refusé', `RDV #${payload.rdvId} refusé`, payload.rdvId);
+        addNotification('rdv-response', 'RDV refusé', `RDV #${payload.rdvId} refusé`, payload.rdvId, rdvLink);
         return;
       }
 
       if ((payload?.type === 'proposal_rejected') && isForAgent) {
-        addNotification('rdv-response', 'Proposition refusée', `Le prospect a refusé la proposition pour RDV #${payload.rdvId}`, payload.rdvId);
+        addNotification('rdv-response', 'Proposition refusée', `Le prospect a refusé la proposition pour RDV #${payload.rdvId}`, payload.rdvId, rdvLink);
         return;
       }
 
-      addNotification('rdv-response', 'RDV mis à jour', `RDV #${payload.rdvId} mis à jour`, payload.rdvId);
+      addNotification('rdv-response', 'RDV mis à jour', `RDV #${payload.rdvId} mis à jour`, payload.rdvId, rdvLink);
     };
 
     socket.on('rdv_update', handler);
     return () => {
       socket.off('rdv_update', handler);
     };
-  }, [socket, user?.id, addNotification]);
+  }, [socket, user?.id, addNotification, lng]);
   
   useEffect(() => {
     // Vérifier que l'utilisateur est sur le bon dashboard selon son rôle

@@ -24,6 +24,7 @@ type RdvCardData = {
 type RemoteRdv = {
   id: number;
   date: string;
+  createdAt?: string;
   proposedDate?: string | null;
   nom?: string;
   prenom?: string;
@@ -63,7 +64,12 @@ const RdvProspect: React.FC = () => {
       const json = await res.json();
       const rawList = json?.data ?? json;
       const data: RemoteRdv[] = Array.isArray(rawList) ? rawList : [];
-      const mapped: RdvCardData[] = data.map(r => ({
+      const sortedData = [...data].sort((a, b) => {
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.date ? new Date(a.date).getTime() : a.id);
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.date ? new Date(b.date).getTime() : b.id);
+        return timeB - timeA;
+      });
+      const mapped: RdvCardData[] = sortedData.map(r => ({
         id: r.id,
         date: format(new Date(r.date), 'dd/MM/yyyy'),
         heure: format(new Date(r.date), 'HH:mm'),
@@ -193,21 +199,35 @@ const RdvProspect: React.FC = () => {
             />
 
             {rdv.status === 'proposed' && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => handleProposalAction(i, 'accept')}
-                  disabled={loadingId === rdv.id}
-                  className={`px-3 py-1 bg-green-600 text-white rounded-lg text-sm transition ${loadingId === rdv.id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
-                >
-                  {t('rdvProspect.actions.accept')}
-                </button>
-                <button
-                  onClick={() => handleProposalAction(i, 'reject')}
-                  disabled={loadingId === rdv.id}
-                  className={`px-3 py-1 bg-red-600 text-white rounded-lg text-sm transition ${loadingId === rdv.id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
-                >
-                  {t('rdvProspect.actions.reject')}
-                </button>
+              <div className="space-y-2">
+                <div className="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-3 text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <span className="font-semibold">💡 {t('rdvProspect.proposalNoticeTitle')} :</span>{' '}
+                    {t('rdvProspect.proposalNoticeMsg')}
+                  </div>
+                  <button
+                    onClick={() => handleOpenChat(i)}
+                    className="whitespace-nowrap px-2.5 py-1 bg-amber-600 text-white hover:bg-amber-700 rounded-md text-xs transition"
+                  >
+                    💬 {t('rdvProspect.actions.messaging')}
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => handleProposalAction(i, 'accept')}
+                    disabled={loadingId === rdv.id}
+                    className={`px-3 py-1 bg-green-600 text-white rounded-lg text-sm transition ${loadingId === rdv.id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
+                  >
+                    {t('rdvProspect.actions.accept')}
+                  </button>
+                  <button
+                    onClick={() => handleProposalAction(i, 'reject')}
+                    disabled={loadingId === rdv.id}
+                    className={`px-3 py-1 bg-red-600 text-white rounded-lg text-sm transition ${loadingId === rdv.id ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-700'}`}
+                  >
+                    {t('rdvProspect.actions.reject')}
+                  </button>
+                </div>
               </div>
             )}
 

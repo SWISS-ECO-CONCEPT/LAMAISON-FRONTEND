@@ -223,6 +223,8 @@
             "description": "L'agent propose un nouveau créneau",
             "accept": "Accepter la proposition"
         },
+        "proposalNoticeTitle": "Nouvelle proposition de RDV",
+        "proposalNoticeMsg": "L'agent vous a fait une nouvelle proposition de créneau. Veuillez consulter votre messagerie pour voir la proposition et échanger avec l'agent.",
         "actions":{
             "accept": "Accepter",
             "reject": "Refuser",
@@ -272,7 +274,9 @@
         "rdvRequest": "Nouvelle demande de RDV",
         "rdvResponse": "Réponse à votre RDV",
         "rdvAccepted": "Votre RDV a été accepté",
-        "rdvRejected": "Votre RDV a été refusé"
+        "rdvRejected": "Votre RDV a été refusé",
+        "rdvProposedTitle": "Nouvelle proposition de RDV",
+        "rdvProposedMsg": "Une proposition de créneau a été émise pour le RDV #{{id}}. Veuillez consulter votre messagerie pour la voir."
     },
     "profile": {
         "title": "Profil",

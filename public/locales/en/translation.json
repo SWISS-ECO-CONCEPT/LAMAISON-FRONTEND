@@ -324,7 +324,9 @@
       "accept": "Accept",
       "reject": "Reject",
       "messaging": "Message"
-    }   
+    },
+    "proposalNoticeTitle": "New appointment proposal",
+    "proposalNoticeMsg": "The agent has made a new time slot proposal. Please check your messaging to view the proposal and discuss with the agent."
   },
    "projetTypeOptions": {
     "title": "Project type",
@@ -368,7 +370,9 @@
     "rdvRequest": "New appointment request",
     "rdvResponse": "Response to your appointment",
     "rdvAccepted": "Your appointment has been accepted",
-    "rdvRejected": "Your appointment has been rejected"
+    "rdvRejected": "Your appointment has been rejected",
+    "rdvProposedTitle": "New appointment proposal",
+    "rdvProposedMsg": "A time slot proposal has been sent for RDV #{{id}}. Please check your messaging to view it."
   },
   "Nouvelle demande de RDV de": "New appointment request from",
   "pour": "for",
