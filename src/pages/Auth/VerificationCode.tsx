@@ -24,58 +24,61 @@ const VerificationCode = () => {
       if (result?.status === "complete") {
         await setActiveSignUp?.({ session: result?.createdSessionId });
 
-        // Sync explicite avec la BDD locale via POST /auth/signup
-        // Récupère prénom/rôle/téléphone depuis les unsafeMetadata de Clerk
-        // (sauvegardés lors de signUp.create dans Inscription.tsx)
-        setTimeout(async () => {
-          try {
-            const token = await getToken();
-            const meta = (user?.unsafeMetadata ?? {}) as {
-              firstname?: string;
-              role?: 'PROSPECT' | 'AGENT';
-              phone?: string;
-            };
-            const clerkId = userId || user?.id;
-            const firstname = meta.firstname || user?.firstName || '';
-            const role = meta.role || 'PROSPECT';
-            const phone = meta.phone || '';
-            const email = user?.emailAddresses?.[0]?.emailAddress || '';
+        // Sync explicite avec la BDD locale via POST /auth/signup.
+        // On attend cette étape AVANT d'annoncer le succès à l'utilisateur —
+        // avant, elle partait en tâche de fond (setTimeout, sans await) et le
+        // message "Compte vérifié" pouvait s'afficher avant même de savoir si
+        // la sync avait marché.
+        try {
+          // user?.reload() force le SDK Clerk à relire les vraies métadonnées
+          // qu'on vient d'enregistrer (signUp.create dans Inscription.tsx) —
+          // sans ça, le `user` local peut encore contenir une version
+          // périmée juste après la création du compte.
+          await user?.reload();
 
-            if (clerkId && token && firstname && phone) {
-              const sync = await signUpUser(clerkId, firstname, role, phone, token);
-              console.debug('[VerificationCode] Sync BDD réussie :', sync?.user ?? sync);
-              // Hydrater AuthContext avec les données fraîches
-              const dbUser = sync?.user ?? sync;
-              updateUser({
-                id: dbUser?.id,
-                clerkId,
-                firstname: dbUser?.firstname ?? firstname,
-                email: dbUser?.email ?? email,
-                role: dbUser?.role ?? role,
-                phone: dbUser?.phone ?? phone,
-              });
-            } else {
-              console.warn('[VerificationCode] Sync BDD ignorée : infos manquantes', {
-                clerkId: !!clerkId, token: !!token, firstname: !!firstname, phone: !!phone,
-              });
-              // Même sans sync backend, alimenter le contexte avec ce qu'on a
-              if (clerkId && firstname) {
-                updateUser({
-                  clerkId,
-                  firstname,
-                  email,
-                  role,
-                  phone,
-                });
-              }
-            }
-          } catch (syncErr) {
-            console.warn('[VerificationCode] Échec sync BDD (continuons) :', syncErr);
+          const token = await getToken();
+          const meta = (user?.unsafeMetadata ?? {}) as {
+            firstname?: string;
+            role?: 'PROSPECT' | 'AGENT';
+            phone?: string;
+          };
+          const clerkId = userId || user?.id;
+          const firstname = meta.firstname || user?.firstName || '';
+          const role = meta.role || 'PROSPECT';
+          const phone = meta.phone || '';
+          const email = user?.emailAddresses?.[0]?.emailAddress || '';
+
+          if (clerkId && token && firstname && phone) {
+            const sync = await signUpUser(clerkId, firstname, role, phone, token);
+            console.debug('[VerificationCode] Sync BDD réussie :', sync?.user ?? sync);
+            const dbUser = sync?.user ?? sync;
+            updateUser({
+              id: dbUser?.id,
+              clerkId,
+              firstname: dbUser?.firstname ?? firstname,
+              email: dbUser?.email ?? email,
+              role: dbUser?.role ?? role,
+              phone: dbUser?.phone ?? phone,
+            });
+          } else {
+            // On ne peuple PLUS AuthContext ici comme si tout allait bien :
+            // sans confirmation réelle du backend, mieux vaut laisser le
+            // contexte vide (les pages qui en ont besoin retombent sur les
+            // données Clerk brutes) que de prétendre un succès qui n'a pas
+            // eu lieu. Le webhook Clerk (/webhooks/clerk) reste le filet de
+            // sécurité qui rattrapera la création en base de son côté.
+            console.warn('[VerificationCode] Sync BDD ignorée : infos manquantes', {
+              clerkId: !!clerkId, token: !!token, firstname: !!firstname, phone: !!phone,
+            });
           }
-        }, 300);
+        } catch (syncErr) {
+          // Même logique : un échec réel de sync ne doit pas non plus
+          // déclencher un faux succès local.
+          console.warn('[VerificationCode] Échec sync BDD (le webhook Clerk prendra le relais) :', syncErr);
+        }
 
         alert("Compte vérifié avec succès !");
-        setTimeout(() =>navigate(`/${lng}/dashboard`), 800);
+        setTimeout(() => navigate(`/${lng}/dashboard`), 800);
       } else {
         alert("Code incorrect ou expiré. Réessaye !");
       }
