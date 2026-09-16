@@ -118,12 +118,12 @@ const Annonces: React.FC = () => {
             {!loading && !error && (
                 <>
                     {items.length === 0 ? (
-                        <div className="text-center py-12">
+                        <div className="text-center py-12" data-testid="annonces-empty">
                             <p className="text-gray-600 text-lg">{t('RechError.title')}</p>
                             <p className="text-gray-500 mt-2">{t('RechError.body')}</p>
                         </div>
                     ) : (
-                        <div className="grid gap-6 md:grid-cols-3">
+                        <div className="grid gap-6 md:grid-cols-3" data-testid="annonces-results">
                             {items.map((a: Annonce) => (
                                 <AnnonceCard
                                     key={a.id}

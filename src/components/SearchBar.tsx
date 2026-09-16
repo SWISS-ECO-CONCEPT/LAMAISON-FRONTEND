@@ -214,6 +214,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
             {/* Bouton Rechercher */}
             <button
               type="submit"
+              data-testid="search-submit-button"
               className="h-12  bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition flex items-center gap-2"
             >
               <FaSearch />

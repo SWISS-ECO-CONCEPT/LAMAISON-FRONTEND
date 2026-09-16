@@ -170,7 +170,7 @@ const AnnonceDetail: React.FC = () => {
           ))}
         </Swiper>
 
-        <h3 className="text-xl sm:text-2xl font-bold text-gray-800">{a.titre}</h3>
+        <h3 data-testid="annonce-detail-title" className="text-xl sm:text-2xl font-bold text-gray-800">{a.titre}</h3>
         <div className="flex items-center justify-between gap-2">
           <div>
             <p className="text-gray-600 text-sm sm:text-base">{a.ville}{a.quartier ? `, ${a.quartier}` : ''}</p>
