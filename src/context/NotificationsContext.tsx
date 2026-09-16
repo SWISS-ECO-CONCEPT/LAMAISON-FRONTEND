@@ -11,7 +11,7 @@ export const NotificationsProvider: React.FC<React.PropsWithChildren> = ({ child
   const [notifications, setNotifications] = useState<NotificationData[]>(loadStoredNotifications);
 
   const addNotification: NotificationsContextValue["addNotification"] = useCallback(
-    (type, title, message, rdvId) => {
+    (type, title, message, rdvId, link) => {
       const id = `${Date.now()}-${Math.random()}`;
       const newNotification: NotificationData = {
         id,
@@ -21,6 +21,7 @@ export const NotificationsProvider: React.FC<React.PropsWithChildren> = ({ child
         isRead: false,
         timestamp: new Date(),
         rdvId,
+        link,
       };
       setNotifications((prev) => {
         const next = [newNotification, ...prev];

@@ -1,11 +1,12 @@
 import { t } from 'i18next'
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import * as yup from 'yup'
 import { useFormik, type FormikHelpers } from 'formik';
-import { useSignIn, useAuth } from '@clerk/clerk-react';
+import { useSignIn, useAuth, useUser } from '@clerk/clerk-react';
 import { Eye, EyeOff } from 'lucide-react';
 import { signInUser } from '../../services/authService';
+import { AuthContext } from '../../context/AuthContext';
 
 const schemaSignIn = yup.object().shape({
   email: yup.string().email('Invalid email').required('Email is required'),
@@ -16,6 +17,8 @@ const Connexion = () => {
   const { lng } = useParams<{ lng: string }>();
   const { signIn, isLoaded: isSignInLoaded, setActive: setActiveSignIn } = useSignIn();
   const { getToken, userId } = useAuth();
+  const { user: clerkUser } = useUser();
+  const { updateUser } = useContext(AuthContext);
   const redirectUrl = `/${lng}/dashboard`;
   const [showPassword, setShowPassword] = useState(false);
 
@@ -54,18 +57,44 @@ const Connexion = () => {
       if (result.status === 'complete') {
         await setActiveSignIn({ session: result.createdSessionId });
 
-        // Sync explicite avec la BDD locale via POST /auth/signin
-        // Lecture correcte du wrapper { success, data } pour rester compatible
-        // avec l'uniformisation serveur.
         setTimeout(async () => {
           try {
             const token = await getToken();
-            if (userId && token) {
-              const sync = await signInUser(userId, token);
+            const meta = (clerkUser?.unsafeMetadata ?? {}) as {
+              firstname?: string;
+              role?: 'PROSPECT' | 'AGENT';
+              phone?: string;
+            };
+            const clerkId = userId || clerkUser?.id;
+            const firstnameMeta = meta.firstname || clerkUser?.firstName || clerkUser?.fullName || '';
+            const roleMeta = meta.role || 'PROSPECT';
+            const phoneMeta = meta.phone || clerkUser?.phoneNumbers?.[0]?.phoneNumber || '';
+            const emailMeta = clerkUser?.emailAddresses?.[0]?.emailAddress || '';
+
+            if (clerkId && token) {
+              const sync = await signInUser(clerkId, token);
               console.debug('[Connexion] Sync BDD réussie :', sync?.user ?? sync);
+              // Hydrater AuthContext depuis la BDD en priorité, fallback sur Clerk
+              const dbUser = sync?.user ?? sync;
+              updateUser({
+                id: dbUser?.id,
+                clerkId,
+                firstname: dbUser?.firstname ?? firstnameMeta,
+                email: dbUser?.email ?? emailMeta,
+                role: dbUser?.role ?? roleMeta,
+                phone: dbUser?.phone ?? phoneMeta,
+              });
+            } else if (clerkId && firstnameMeta) {
+              // Fallback si sync n'a pas pu se faire
+              updateUser({
+                clerkId,
+                firstname: firstnameMeta,
+                email: emailMeta,
+                role: roleMeta,
+                phone: phoneMeta,
+              });
             }
           } catch (syncErr) {
-            // Ne pas bloquer la redirection — le webhook Clerk finira le sync
             console.warn('[Connexion] Échec sync BDD (continuons) :', syncErr);
           }
         }, 200);

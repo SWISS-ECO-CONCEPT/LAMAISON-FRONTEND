@@ -1,48 +1,68 @@
 // src/pages/Dashboard/Profile/Profile.tsx
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-react"; // Ajout du hook Clerk
-import { useTranslation } from "react-i18next"; // Import de useTranslation
+import { useState, useEffect, useContext } from "react";
+import { useUser } from "@clerk/clerk-react";
+import { useTranslation } from "react-i18next";
+import { AuthContext } from "../../../context/AuthContext";
 
-//  Définition du type UserProfile pour typer les données utilisateur
 type UserProfile = {
   firstname: string;
   email: string;
   phone?: string;
   role: "AGENT" | "PROSPECT";
-  avatar?: string; // URL ou base64
+  avatar?: string;
 };
 
 const Profile = () => {
-  const { t } = useTranslation(); // Récupère la fonction de traduction
-  const { user } = useUser(); // Récupère l'utilisateur Clerk
+  const { t } = useTranslation();
+  const { user } = useUser();
+  const { user: contextUser } = useContext(AuthContext);
 
-  // Initialisation avec Clerk
-  const [formData, setFormData] = useState<UserProfile>({
-    firstname: (user?.unsafeMetadata?.firstname as string) || "",
-    email: user?.emailAddresses?.[0]?.emailAddress || "",
-    phone: user?.phoneNumbers?.[0]?.phoneNumber || "",
-    role: (user?.unsafeMetadata?.role as "AGENT" | "PROSPECT") || "PROSPECT",
-    avatar: user?.imageUrl || "",
-  });
+  const buildProfile = (): UserProfile => {
+    const meta = (user?.unsafeMetadata ?? {}) as {
+      firstname?: string;
+      phone?: string;
+      role?: "AGENT" | "PROSPECT";
+    };
 
-  // Aperçu avatar
+    const firstname =
+      (meta.firstname as string) ||
+      user?.firstName ||
+      user?.fullName ||
+      contextUser?.firstname ||
+      "";
+
+    const email =
+      user?.emailAddresses?.[0]?.emailAddress ||
+      contextUser?.email ||
+      "";
+
+    const phone =
+      (meta.phone as string) ||
+      user?.phoneNumbers?.[0]?.phoneNumber ||
+      contextUser?.phone ||
+      "";
+
+    const role =
+      (meta.role as "AGENT" | "PROSPECT") ||
+      (contextUser?.role as "AGENT" | "PROSPECT") ||
+      "PROSPECT";
+
+    const avatar = user?.imageUrl || "";
+
+    return { firstname, email, phone, role, avatar };
+  };
+
+  const [formData, setFormData] = useState<UserProfile>(buildProfile());
   const [preview, setPreview] = useState<string | null>(user?.imageUrl || null);
 
   useEffect(() => {
-    if (user) {
-      // console.log("User data:", user);
-      // console.log("Phone numbers:", user.phoneNumbers);
-      // console.log("Unsafe metadata:", user.unsafeMetadata);
-      setFormData({
-        firstname: (user.unsafeMetadata.firstname as string) || "",
-        email: user.emailAddresses?.[0]?.emailAddress || "",
-        phone: (user.unsafeMetadata.phone as string) || "",
-        role: (user.unsafeMetadata?.role as "AGENT" | "PROSPECT"),
-        avatar: user.imageUrl || "",
-      });
-      setPreview(user.imageUrl || null);
+    if (user || contextUser) {
+      const p = buildProfile();
+      setFormData(p);
+      setPreview(p.avatar || null);
     }
-  }, [user]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, contextUser]);
 
   //  Gestion des changements dans les champs texte du formulaire
   const handleChange = (

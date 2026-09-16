@@ -1,12 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { useSignUp, useAuth, useUser } from "@clerk/clerk-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { signUpUser } from "../../services/authService";
+import { AuthContext } from "../../context/AuthContext";
 
 const VerificationCode = () => {
   const { signUp, setActive: setActiveSignUp } = useSignUp();
   const { getToken, userId } = useAuth();
   const { user } = useUser();
+  const { updateUser } = useContext(AuthContext);
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -37,17 +39,37 @@ const VerificationCode = () => {
             const firstname = meta.firstname || user?.firstName || '';
             const role = meta.role || 'PROSPECT';
             const phone = meta.phone || '';
+            const email = user?.emailAddresses?.[0]?.emailAddress || '';
 
             if (clerkId && token && firstname && phone) {
               const sync = await signUpUser(clerkId, firstname, role, phone, token);
               console.debug('[VerificationCode] Sync BDD réussie :', sync?.user ?? sync);
+              // Hydrater AuthContext avec les données fraîches
+              const dbUser = sync?.user ?? sync;
+              updateUser({
+                id: dbUser?.id,
+                clerkId,
+                firstname: dbUser?.firstname ?? firstname,
+                email: dbUser?.email ?? email,
+                role: dbUser?.role ?? role,
+                phone: dbUser?.phone ?? phone,
+              });
             } else {
               console.warn('[VerificationCode] Sync BDD ignorée : infos manquantes', {
                 clerkId: !!clerkId, token: !!token, firstname: !!firstname, phone: !!phone,
               });
+              // Même sans sync backend, alimenter le contexte avec ce qu'on a
+              if (clerkId && firstname) {
+                updateUser({
+                  clerkId,
+                  firstname,
+                  email,
+                  role,
+                  phone,
+                });
+              }
             }
           } catch (syncErr) {
-            // Ne pas bloquer — le webhook Clerk finira le sync (sauf phone)
             console.warn('[VerificationCode] Échec sync BDD (continuons) :', syncErr);
           }
         }, 300);

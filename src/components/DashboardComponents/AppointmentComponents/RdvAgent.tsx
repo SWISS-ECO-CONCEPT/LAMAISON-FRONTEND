@@ -26,6 +26,7 @@ type RdvData = {
 type RemoteRdvData = {
   id: number;
   date: string;
+  createdAt?: string;
   proposedDate?: string | null;
   nom?: string;
   prenom?: string;
@@ -67,7 +68,12 @@ const RdvAgent: React.FC = () => {
         const json = await res.json();
         const rawList = json?.data ?? json;
         const data: RemoteRdvData[] = Array.isArray(rawList) ? rawList : [];
-        const mapped: RdvData[] = data.map((r: RemoteRdvData) => ({
+        const sortedData = [...data].sort((a, b) => {
+          const timeA = a.createdAt ? new Date(a.createdAt).getTime() : (a.date ? new Date(a.date).getTime() : a.id);
+          const timeB = b.createdAt ? new Date(b.createdAt).getTime() : (b.date ? new Date(b.date).getTime() : b.id);
+          return timeB - timeA;
+        });
+        const mapped: RdvData[] = sortedData.map((r: RemoteRdvData) => ({
           id: r.id,
           date: new Date(r.date).toLocaleDateString(),
           heure: new Date(r.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
